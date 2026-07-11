@@ -945,8 +945,125 @@ var SyncCore = (function () {
   return { pull: pull, push: push, encodeContent: encodeContent, decodeContent: decodeContent, apiUrl: apiUrl };
 })();
 
+/* =====================================================================
+   AutoSync — โมดูล pull อัตโนมัติทุก 5 นาที + ตอนกลับมาที่แท็บ/หน้าจอ
+   ออกแบบให้รับ dependency ทั้งหมดผ่าน init(opts) เพื่อทดสอบแยกได้โดยไม่พึ่ง timer จริง/DOM จริง
+   ห้ามแก้ AcctCore และ SyncCore เดิม (โมดูลนี้แยกต่างหาก + glue เท่านั้น)
+   ===================================================================== */
+var AutoSync = (function () {
+  'use strict';
+
+  function create(opts) {
+    opts = opts || {};
+    var intervalMs = opts.intervalMs || 300000;
+    var isEnabled = opts.isEnabled || function () { return false; };
+    var isBusy = opts.isBusy || function () { return false; };
+    var getLastSha = opts.lastSha || function () { return null; };
+    var onNewData = opts.onNewData || function () {};
+    var onConflict = opts.onConflict || function () {};
+    var pullFn = opts.pullFn || function () { return Promise.reject(new Error('pullFn not provided')); };
+    var documentRef = opts.documentRef || (typeof document !== 'undefined' ? document : null);
+    var setIntervalFn = opts.setIntervalFn || (typeof setInterval !== 'undefined' ? setInterval : null);
+    var clearIntervalFn = opts.clearIntervalFn || (typeof clearInterval !== 'undefined' ? clearInterval : null);
+    var now = opts.now || function () { return Date.now(); };
+    var hasLocalUnpushedChanges = opts.hasLocalUnpushedChanges || function () { return false; };
+    var throttleMs = opts.throttleMs === undefined ? 30000 : opts.throttleMs;
+
+    var pullInFlight = false;
+    var lastPullAttemptAt = null; // null = ยังไม่เคยพยายาม pull (ใช้ null แทน 0 กันพลาดตอน now()=0 ในเทส)
+    var lastCheckedAt = null;
+    var intervalId = null;
+
+    function isDocumentHidden() {
+      return !!(documentRef && documentRef.hidden);
+    }
+
+    // tick(opts2): opts2.fromInterval=true เมื่อถูกเรียกจาก setInterval (ต้องข้ามถ้าซ่อนอยู่)
+    // visibilitychange เรียก tick โดยไม่ส่ง fromInterval (หรือ fromInterval=false) เพราะเพิ่ง visible แน่นอน
+    function tick(opts2) {
+      opts2 = opts2 || {};
+      var fromInterval = !!opts2.fromInterval;
+
+      if (!isEnabled()) return Promise.resolve({ skipped: 'disabled' });
+      if (isBusy()) return Promise.resolve({ skipped: 'busy' });
+      if (fromInterval && isDocumentHidden()) return Promise.resolve({ skipped: 'hidden' });
+      if (pullInFlight) return Promise.resolve({ skipped: 'in-flight' });
+
+      var nowTs = now();
+      if (lastPullAttemptAt !== null && (nowTs - lastPullAttemptAt) < throttleMs) {
+        return Promise.resolve({ skipped: 'throttle' });
+      }
+
+      lastPullAttemptAt = nowTs;
+      pullInFlight = true;
+
+      return Promise.resolve().then(pullFn).then(function (result) {
+        pullInFlight = false;
+        lastCheckedAt = now();
+        var newSha = result && result.sha;
+        var knownSha = getLastSha();
+        if (newSha && knownSha && newSha === knownSha) {
+          // sha เดิม -> เงียบๆ ไม่ทำอะไร
+          return { skipped: 'same-sha' };
+        }
+        if (hasLocalUnpushedChanges()) {
+          onConflict(result);
+          return { conflict: true, result: result };
+        }
+        onNewData(result && result.data, newSha);
+        return { applied: true, result: result };
+      }).catch(function (err) {
+        pullInFlight = false;
+        lastCheckedAt = now();
+        // error เครือข่าย -> เงียบๆ ไม่โยนทะลุ ไม่เรียก onNewData
+        return { error: err };
+      });
+    }
+
+    function start() {
+      if (intervalId != null) return;
+      if (!setIntervalFn) return;
+      intervalId = setIntervalFn(function () { tick({ fromInterval: true }); }, intervalMs);
+    }
+
+    function stop() {
+      if (intervalId != null && clearIntervalFn) clearIntervalFn(intervalId);
+      intervalId = null;
+    }
+
+    function onVisibilityChange() {
+      if (!isDocumentHidden()) tick({ fromInterval: false });
+    }
+
+    function attachVisibilityListener() {
+      if (documentRef && documentRef.addEventListener) {
+        documentRef.addEventListener('visibilitychange', onVisibilityChange);
+      }
+    }
+
+    function detachVisibilityListener() {
+      if (documentRef && documentRef.removeEventListener) {
+        documentRef.removeEventListener('visibilitychange', onVisibilityChange);
+      }
+    }
+
+    return {
+      tick: tick,
+      start: start,
+      stop: stop,
+      attachVisibilityListener: attachVisibilityListener,
+      detachVisibilityListener: detachVisibilityListener,
+      onVisibilityChange: onVisibilityChange,
+      isPullInFlight: function () { return pullInFlight; },
+      getLastCheckedAt: function () { return lastCheckedAt; }
+    };
+  }
+
+  return { create: create };
+})();
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { AcctCore: (typeof AcctCore !== 'undefined' ? AcctCore : null), SyncCore: SyncCore };
+  module.exports = { AcctCore: (typeof AcctCore !== 'undefined' ? AcctCore : null), SyncCore: SyncCore, AutoSync: (typeof AutoSync !== 'undefined' ? AutoSync : null) };
 }
 
 /* =====================================================================
@@ -2451,6 +2568,101 @@ fillSettingsForm = function () {
 };
 
 /* =====================================================================
+   AutoSync glue — เชื่อม AutoSync เข้ากับแอปจริง (pull ทุก 5 นาที + ตอนกลับมาที่แท็บ)
+   ห้ามแก้ AcctCore/SyncCore เดิม, ห้ามเปลี่ยนพฤติกรรม push เดิม (debounce 3 วิ หลังบันทึก)
+   ===================================================================== */
+
+// ---- ติดตามว่ามี modal สร้าง/แก้ไขข้อมูลเปิดอยู่หรือไม่ (wrap openModal/closeModal เดิมจากภายนอก) ----
+var BUSY_MODAL_IDS = ['modalDoc', 'modalExpense', 'modalContact', 'modalProduct'];
+var openBusyModalCount = 0;
+var isPrintPreviewOpen = false;
+
+var openModalRaw = openModal;
+openModal = function (id) {
+  openModalRaw(id);
+  if (BUSY_MODAL_IDS.indexOf(id) >= 0) openBusyModalCount++;
+};
+var closeModalRaw = closeModal;
+closeModal = function (id) {
+  var wasOpenBusy = BUSY_MODAL_IDS.indexOf(id) >= 0;
+  closeModalRaw(id);
+  if (wasOpenBusy && openBusyModalCount > 0) {
+    openBusyModalCount--;
+    if (openBusyModalCount === 0) {
+      // เพิ่งปิด modal สุดท้าย -> pull ทันทีถ้าถึงรอบ (tick เองจะเช็ค throttle/enabled ให้)
+      setTimeout(function () { if (window.__autoSync) window.__autoSync.tick({ fromInterval: false }); }, 0);
+    }
+  }
+};
+
+// ---- ติดตามหน้าพิมพ์ (print preview) ผ่าน window.print / beforeprint-afterprint ----
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('beforeprint', function () { isPrintPreviewOpen = true; });
+  window.addEventListener('afterprint', function () {
+    isPrintPreviewOpen = false;
+    setTimeout(function () { if (window.__autoSync) window.__autoSync.tick({ fromInterval: false }); }, 0);
+  });
+}
+
+function autoSyncIsBusy() {
+  return openBusyModalCount > 0 || isPrintPreviewOpen || syncInFlight;
+}
+
+function autoSyncIsEnabled() {
+  var cfg = loadSyncConfig();
+  return !!(cfg.auto && cfg.token && !isFileProtocol());
+}
+
+function autoSyncHasLocalUnpushedChanges() {
+  // มี push ค้างอยู่ใน debounce timer (ยังไม่ยิงออกไป) ถือว่ามีการแก้ไข local ที่ยัง push ไม่สำเร็จ
+  return !!syncPushTimer || syncInFlight;
+}
+
+function autoSyncPullFn() {
+  return SyncCore.pull(loadSyncConfig());
+}
+
+function autoSyncOnNewData(data, sha) {
+  if (!data) return;
+  syncLastSha = sha; // อัปเดต lastSha ที่จำไว้ เพื่อให้ push ครั้งถัดไปใช้ sha ถูก
+  applyCloudData(data);
+  setSyncStatus('ok', 'ซิงก์อัตโนมัติล่าสุด ' + new Date().toLocaleTimeString('th-TH'));
+  updateSyncLastResult('ดึงข้อมูลอัตโนมัติจากคลาวด์สำเร็จ เมื่อ ' + fmtDateTime(data.updatedAt));
+}
+
+function autoSyncOnConflict(result) {
+  // มีข้อมูล local ที่ยัง push ไม่สำเร็จ -> ห้ามทับเงียบๆ ให้แสดง modal เดิมให้ผู้ใช้เลือก
+  var localUpdatedAt = DB && DB.updatedAt;
+  var cloudUpdatedAt = result && result.updatedAt;
+  if (result && result.data) {
+    openSyncConflictModal(localUpdatedAt, cloudUpdatedAt, result.data);
+    setSyncStatus('ok', 'พบข้อมูลใหม่บนคลาวด์ (รอเลือก)');
+  }
+}
+
+window.__autoSync = AutoSync.create({
+  intervalMs: 5 * 60 * 1000,
+  throttleMs: 30000,
+  isEnabled: autoSyncIsEnabled,
+  isBusy: autoSyncIsBusy,
+  lastSha: function () { return syncLastSha; },
+  onNewData: autoSyncOnNewData,
+  onConflict: autoSyncOnConflict,
+  pullFn: autoSyncPullFn,
+  hasLocalUnpushedChanges: autoSyncHasLocalUnpushedChanges,
+  documentRef: document
+});
+
+// เริ่ม/หยุด interval ตามสถานะ toggle เปิด/ปิดซิงก์อัตโนมัติ (เชื่อมกับ checkbox เดิม โดยไม่แก้ handler เดิม)
+function refreshAutoSyncRunning() {
+  if (autoSyncIsEnabled()) window.__autoSync.start();
+  else window.__autoSync.stop();
+}
+document.getElementById('syncAutoToggle').addEventListener('change', refreshAutoSyncRunning);
+
+window.__autoSync.attachVisibilityListener();
+
+/* =====================================================================
    Init
    ===================================================================== */
 function init() {
@@ -2468,6 +2680,7 @@ function init() {
   } else {
     setSyncStatus(null, 'ยังไม่ได้ตั้งค่าซิงก์');
   }
+  refreshAutoSyncRunning();
 }
 init();
 </script>
