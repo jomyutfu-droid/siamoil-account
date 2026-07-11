@@ -127,6 +127,17 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
 .toast.warn{ background:#e65100; }
 @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
+/* ---------- Sync status (topbar) ---------- */
+#syncStatus{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-mute); padding:4px 10px; border-radius:14px; background:#f0f2f5; }
+#syncStatus .dot{ width:8px; height:8px; border-radius:50%; background:#9e9e9e; flex-shrink:0; }
+#syncStatus.ok .dot{ background:var(--success); }
+#syncStatus.err .dot{ background:var(--danger); }
+#syncStatus.busy .dot{ background:var(--warning); animation:pulse 1s infinite; }
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+.sync-guide{ background:#fafcff; border:1px dashed var(--border); border-radius:6px; padding:10px 12px; font-size:12.5px; line-height:1.9; margin-top:8px; }
+.sync-guide code{ background:#eef2f7; padding:1px 5px; border-radius:4px; }
+
 .line-items-table input{ padding:5px 6px; font-size:12.5px; }
 .totals-box{ margin-top:12px; display:flex; justify-content:flex-end; }
 .totals-box table{ width:340px; }
@@ -203,6 +214,7 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
     <div id="topbar">
       <h1 id="pageTitle">แดชบอร์ด</h1>
       <div class="actions">
+        <div id="syncStatus" title="สถานะซิงก์ข้อมูล"><span class="dot"></span><span id="syncStatusText">ยังไม่ได้ตั้งค่าซิงก์</span></div>
         <button class="ghost sm" id="btnBackupTop" title="สำรองข้อมูล">⬇ สำรองข้อมูล</button>
         <button class="ghost sm" id="btnRestoreTop" title="กู้คืนข้อมูล">⬆ กู้คืนข้อมูล</button>
         <input type="file" id="fileRestore" accept=".json" style="display:none;">
@@ -372,6 +384,37 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
           <button class="primary" id="btnBackup">⬇ สำรองข้อมูล (ดาวน์โหลด .json)</button>
           <button class="danger" id="btnRestore">⬆ กู้คืนข้อมูลจากไฟล์ .json</button>
           <button class="ghost" id="btnResetAll">ล้างข้อมูลทั้งหมด (เริ่มใหม่)</button>
+        </div>
+
+        <div class="card">
+          <h2>ซิงก์ข้อมูลผ่าน GitHub</h2>
+          <p class="hint">ใช้ GitHub private repo เป็นที่เก็บข้อมูลกลาง เพื่อให้เปิดโปรแกรมจากคอมพิวเตอร์และมือถือเห็นข้อมูลเดียวกัน
+          ต้องสร้าง Personal Access Token ด้วยตัวเอง (ดูวิธีด้านล่าง) — โปรแกรมนี้จะไม่สร้างหรือขอโทเค็นให้เด็ดขาด</p>
+          <div class="grid cols-3">
+            <div class="form-row"><label>เจ้าของ repo (owner)</label><input type="text" id="syncOwner" placeholder="jomyutfu-droid"></div>
+            <div class="form-row"><label>ชื่อ repo ข้อมูล</label><input type="text" id="syncRepo" placeholder="siamoil-account-data"></div>
+            <div class="form-row"><label>Personal Access Token</label><input type="password" id="syncToken" placeholder="github_pat_..." autocomplete="off"></div>
+          </div>
+          <div class="form-row" style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="syncAutoToggle" style="width:auto;">
+            <label style="margin:0;" for="syncAutoToggle">เปิดซิงก์อัตโนมัติ (pull ตอนเปิดแอป, push อัตโนมัติหลังบันทึกข้อมูล)</label>
+          </div>
+          <div class="toolbar" style="margin-top:6px;">
+            <button class="ghost" id="btnSyncTest">ทดสอบการเชื่อมต่อ</button>
+            <button class="primary" id="btnSyncPush">⬆ ส่งข้อมูลขึ้นคลาวด์ (push)</button>
+            <button class="accent" id="btnSyncPull">⬇ ดึงข้อมูลจากคลาวด์ (pull)</button>
+          </div>
+          <div class="hint" id="syncLastResult">ยังไม่เคยซิงก์</div>
+          <div class="sync-guide">
+            <b>วิธีสร้าง Personal Access Token (ทำครั้งเดียวต่อเครื่อง ห้ามส่งให้ใครรวมถึง AI):</b><br>
+            1. เข้า GitHub → รูปโปรไฟล์มุมขวาบน → <code>Settings</code><br>
+            2. เมนูซ้ายล่างสุด → <code>Developer settings</code><br>
+            3. <code>Personal access tokens</code> → <code>Fine-grained tokens</code> → <code>Generate new token</code><br>
+            4. Repository access: เลือก <code>Only select repositories</code> → เลือกเฉพาะ <code>siamoil-account-data</code><br>
+            5. Permissions → <code>Repository permissions</code> → <code>Contents</code> = <code>Read and write</code><br>
+            6. อายุ token ตั้งได้สูงสุด 1 ปี แล้วกด <code>Generate token</code> คัดลอกมาวางในช่อง Token ด้านบน<br>
+            7. ห้ามวาง token นี้ในที่อื่นหรือแชร์ให้ใคร (รวมถึง AI/แชทใดๆ) — เก็บเป็นความลับเหมือนรหัสผ่าน
+          </div>
         </div>
 
         <div class="card">
@@ -609,6 +652,24 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
   </div>
 </div>
 
+<!-- ============ SYNC CONFLICT MODAL ============ -->
+<div class="modal-overlay" id="modalSyncConflict">
+  <div class="modal" style="max-width:480px;">
+    <h3>เลือกข้อมูลที่จะใช้</h3>
+    <p>พบข้อมูลทั้งฝั่งเครื่องนี้และฝั่งคลาวด์ กรุณาเลือกว่าจะใช้ข้อมูลฝั่งใด (การเลือกจะเขียนทับอีกฝั่งหนึ่ง)</p>
+    <table style="width:100%; margin-bottom:10px;">
+      <tr><th class="text-l">ฝั่ง</th><th class="text-l">แก้ไขล่าสุด</th></tr>
+      <tr><td class="text-l">เครื่องนี้ (local)</td><td class="text-l" id="syncConflictLocalTime">-</td></tr>
+      <tr><td class="text-l">คลาวด์ (GitHub)</td><td class="text-l" id="syncConflictCloudTime">-</td></tr>
+    </table>
+    <div class="modal-actions">
+      <button class="ghost" id="btnSyncConflictCancel">ยกเลิก</button>
+      <button class="danger" id="btnSyncConflictUseLocal">ใช้ข้อมูลเครื่องนี้ (push ทับคลาวด์)</button>
+      <button class="primary" id="btnSyncConflictUseCloud">ใช้ข้อมูลคลาวด์ (pull ทับเครื่องนี้)</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- ============ PRINT AREA ============ -->
@@ -750,6 +811,143 @@ var AcctCore = (function () {
 
   return { round2: round2, calcDocument: calcDocument, bahtText: bahtText, readInteger: readInteger, generateDocNumber: generateDocNumber };
 })();
+
+/* =====================================================================
+   SyncCore — โมดูลซิงก์ข้อมูลผ่าน GitHub Contents API
+   ทดสอบแยกต่างหากด้วย Node.js (mock fetch) ไม่พึ่ง DOM/browser global ใดๆ
+   ห้ามส่ง token ไปที่อื่นนอกจาก https://api.github.com และห้าม log token
+   ===================================================================== */
+var SyncCore = (function () {
+  'use strict';
+
+  var API_BASE = 'https://api.github.com';
+
+  function apiUrl(config) {
+    return API_BASE + '/repos/' + encodeURIComponent(config.owner) + '/' +
+      encodeURIComponent(config.repo) + '/contents/' + config.path +
+      '?ref=' + encodeURIComponent(config.branch || 'main');
+  }
+
+  function authHeaders(config) {
+    return {
+      'Authorization': 'Bearer ' + config.token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+  }
+
+  // ---- base64 <-> UTF-8 object, รองรับภาษาไทย/อีโมจิ (ห้าม btoa ตรงๆ) ----
+  function bytesToBase64(bytes) {
+    var binary = '';
+    var chunk = 0x8000;
+    for (var i = 0; i < bytes.length; i += chunk) {
+      var sub = bytes.subarray ? bytes.subarray(i, i + chunk) : bytes.slice(i, i + chunk);
+      binary += String.fromCharCode.apply(null, sub);
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(b64) {
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  function encodeContent(obj) {
+    var json = JSON.stringify(obj, null, 2);
+    var bytes = new TextEncoder().encode(json);
+    return bytesToBase64(bytes);
+  }
+
+  function decodeContent(base64) {
+    // GitHub อาจคืน content เป็น base64 ที่มีขึ้นบรรทัดใหม่คั่นทุก 60 ตัวอักษร ต้องตัดออกก่อน decode
+    var clean = String(base64).replace(/\n/g, '');
+    var bytes = base64ToBytes(clean);
+    var json = new TextDecoder('utf-8').decode(bytes);
+    return JSON.parse(json);
+  }
+
+  function parseErrorMessage(status, body) {
+    if (status === 401) return { code: 'UNAUTHORIZED', message: 'โทเค็นไม่ถูกต้องหรือหมดอายุ (401) กรุณาตรวจสอบ Personal Access Token' };
+    if (status === 404) return { code: 'NOT_FOUND', message: 'ไม่พบไฟล์ข้อมูลหรือ repo (404)' };
+    if (status === 409 || status === 422) return { code: 'CONFLICT', message: 'ข้อมูลฝั่งคลาวด์ถูกแก้ไขไปแล้ว (sha ไม่ตรง) กรุณา pull ก่อนแล้วค่อย push ใหม่' };
+    var msg = (body && (body.message || body.error)) || ('เกิดข้อผิดพลาด HTTP ' + status);
+    return { code: 'UNKNOWN', message: msg };
+  }
+
+  function makeError(info) {
+    var err = new Error(info.message);
+    err.code = info.code;
+    return err;
+  }
+
+  function pull(config, fetchFn) {
+    fetchFn = fetchFn || (typeof window !== 'undefined' ? window.fetch : fetch);
+    if (!fetchFn) return Promise.reject(makeError({ code: 'NO_FETCH', message: 'เบราว์เซอร์นี้ไม่รองรับ fetch (อาจเปิดผ่าน file://)' }));
+    if (!config || !config.owner || !config.repo || !config.token) {
+      return Promise.reject(makeError({ code: 'BAD_CONFIG', message: 'ตั้งค่าซิงก์ไม่ครบ (เจ้าของ repo / ชื่อ repo / token)' }));
+    }
+    var url = apiUrl(config);
+    return fetchFn(url, { method: 'GET', headers: authHeaders(config) }).then(function (res) {
+      return res.text().then(function (text) {
+        var body = null;
+        try { body = text ? JSON.parse(text) : null; } catch (e) { body = null; }
+        if (!res.ok) {
+          throw makeError(parseErrorMessage(res.status, body));
+        }
+        var dataObj;
+        try {
+          dataObj = decodeContent(body.content);
+        } catch (e) {
+          throw makeError({ code: 'DECODE_ERROR', message: 'อ่านข้อมูลจากคลาวด์ไม่สำเร็จ: ' + e.message });
+        }
+        return { data: dataObj, sha: body.sha, updatedAt: dataObj && dataObj.updatedAt };
+      });
+    });
+  }
+
+  function push(config, dataObj, sha, fetchFn) {
+    fetchFn = fetchFn || (typeof window !== 'undefined' ? window.fetch : fetch);
+    if (!fetchFn) return Promise.reject(makeError({ code: 'NO_FETCH', message: 'เบราว์เซอร์นี้ไม่รองรับ fetch (อาจเปิดผ่าน file://)' }));
+    if (!config || !config.owner || !config.repo || !config.token) {
+      return Promise.reject(makeError({ code: 'BAD_CONFIG', message: 'ตั้งค่าซิงก์ไม่ครบ (เจ้าของ repo / ชื่อ repo / token)' }));
+    }
+    var payload = Object.assign({}, dataObj, { updatedAt: new Date().toISOString() });
+    var url = API_BASE + '/repos/' + encodeURIComponent(config.owner) + '/' +
+      encodeURIComponent(config.repo) + '/contents/' + config.path;
+    var body = {
+      message: (config.commitMessage || 'อัปเดตข้อมูลบัญชี') + ' - ' + payload.updatedAt,
+      content: encodeContent(payload),
+      branch: config.branch || 'main'
+    };
+    if (sha) body.sha = sha;
+    return fetchFn(url, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders(config)), body: JSON.stringify(body) })
+      .then(function (res) {
+        return res.text().then(function (text) {
+          var resBody = null;
+          try { resBody = text ? JSON.parse(text) : null; } catch (e) { resBody = null; }
+          if (!res.ok) {
+            if (res.status === 404 && sha) {
+              // ไฟล์ยังไม่มี แต่เราส่ง sha ไปผิด -> ลองสร้างใหม่โดยไม่ส่ง sha
+              return push(config, dataObj, null, fetchFn);
+            }
+            throw makeError(parseErrorMessage(res.status, resBody));
+          }
+          return {
+            sha: resBody && resBody.content && resBody.content.sha,
+            updatedAt: payload.updatedAt
+          };
+        });
+      });
+  }
+
+  return { pull: pull, push: push, encodeContent: encodeContent, decodeContent: decodeContent, apiUrl: apiUrl };
+})();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { AcctCore: (typeof AcctCore !== 'undefined' ? AcctCore : null), SyncCore: SyncCore };
+}
 
 /* =====================================================================
    ระบบหลักของแอป
@@ -2002,12 +2200,274 @@ function renderDashboard() {
 }
 
 /* =====================================================================
+   Sync UI — เชื่อม SyncCore เข้ากับหน้าตั้งค่า + สถานะบนหัวเว็บ
+   ไม่แก้ logic ของ AcctCore เดิม ใช้วิธี wrap saveDB() จากภายนอกแทน
+   ===================================================================== */
+var SYNC_CFG_KEY = 'siamoil_sync_cfg';
+var syncLastSha = null; // sha ล่าสุดที่รู้จากคลาวด์ (ใช้เช็คว่า auto-push ทับของตรง sha หรือไม่)
+var syncPushTimer = null;
+var syncInFlight = false;
+
+function loadSyncConfig() {
+  try {
+    var raw = localStorage.getItem(SYNC_CFG_KEY);
+    if (!raw) return { owner: 'jomyutfu-droid', repo: 'siamoil-account-data', branch: 'main', path: 'data.json', token: '', auto: false };
+    var parsed = JSON.parse(raw);
+    return {
+      owner: parsed.owner || 'jomyutfu-droid',
+      repo: parsed.repo || 'siamoil-account-data',
+      branch: parsed.branch || 'main',
+      path: parsed.path || 'data.json',
+      token: parsed.token || '',
+      auto: !!parsed.auto
+    };
+  } catch (e) {
+    return { owner: 'jomyutfu-droid', repo: 'siamoil-account-data', branch: 'main', path: 'data.json', token: '', auto: false };
+  }
+}
+
+function saveSyncConfig(cfg) {
+  localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(cfg));
+}
+
+function isFileProtocol() {
+  return typeof location !== 'undefined' && location.protocol === 'file:';
+}
+
+function currentSyncConfigFromForm() {
+  var cfg = loadSyncConfig();
+  cfg.owner = (document.getElementById('syncOwner').value || '').trim() || 'jomyutfu-droid';
+  cfg.repo = (document.getElementById('syncRepo').value || '').trim() || 'siamoil-account-data';
+  var tokenField = document.getElementById('syncToken').value;
+  if (tokenField) cfg.token = tokenField; // เก็บ token เฉพาะตอนกรอกใหม่ (ช่องแสดงเป็น password)
+  cfg.auto = document.getElementById('syncAutoToggle').checked;
+  cfg.branch = 'main';
+  cfg.path = 'data.json';
+  return cfg;
+}
+
+function fillSyncForm() {
+  var cfg = loadSyncConfig();
+  document.getElementById('syncOwner').value = cfg.owner;
+  document.getElementById('syncRepo').value = cfg.repo;
+  document.getElementById('syncToken').value = cfg.token || '';
+  document.getElementById('syncAutoToggle').checked = !!cfg.auto;
+}
+
+function setSyncStatus(state, text) {
+  var el = document.getElementById('syncStatus');
+  el.classList.remove('ok', 'err', 'busy');
+  if (state) el.classList.add(state);
+  document.getElementById('syncStatusText').textContent = text;
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '-';
+  try {
+    var d = new Date(iso);
+    return d.toLocaleString('th-TH');
+  } catch (e) { return iso; }
+}
+
+function updateSyncLastResult(text) {
+  document.getElementById('syncLastResult').textContent = text;
+}
+
+/* ---------- ทดสอบการเชื่อมต่อ ---------- */
+function syncTestConnection() {
+  if (isFileProtocol()) { toast('เปิดไฟล์แบบ file:// ไม่สามารถซิงก์ได้ กรุณาเปิดผ่านเว็บ (https://) แทน', 'warn'); return; }
+  var cfg = currentSyncConfigFromForm();
+  saveSyncConfig(cfg);
+  setSyncStatus('busy', 'กำลังทดสอบ...');
+  SyncCore.pull(cfg).then(function (result) {
+    syncLastSha = result.sha;
+    setSyncStatus('ok', 'เชื่อมต่อสำเร็จ');
+    updateSyncLastResult('ทดสอบเชื่อมต่อสำเร็จ (' + new Date().toLocaleString('th-TH') + ')');
+    toast('เชื่อมต่อ GitHub สำเร็จ', 'success');
+  }).catch(function (err) {
+    if (err.code === 'NOT_FOUND') {
+      setSyncStatus('ok', 'เชื่อมต่อได้ (ยังไม่มีข้อมูลบนคลาวด์)');
+      updateSyncLastResult('เชื่อมต่อได้ แต่ยังไม่มีไฟล์ข้อมูลบนคลาวด์ (จะสร้างให้อัตโนมัติเมื่อกด push)');
+      toast('เชื่อมต่อสำเร็จ แต่ยังไม่มีข้อมูลบนคลาวด์ ลองกด push', 'warn');
+    } else {
+      setSyncStatus('err', 'เชื่อมต่อไม่สำเร็จ');
+      updateSyncLastResult('ทดสอบล้มเหลว: ' + err.message);
+      toast('เชื่อมต่อไม่สำเร็จ: ' + err.message, 'error');
+    }
+  });
+}
+
+/* ---------- Push ---------- */
+function doSyncPush(force) {
+  if (isFileProtocol()) { toast('เปิดไฟล์แบบ file:// ไม่สามารถซิงก์ได้ กรุณาเปิดผ่านเว็บ (https://) แทน', 'warn'); return; }
+  var cfg = loadSyncConfig();
+  if (!cfg.token) { toast('กรุณากรอก Personal Access Token ก่อนซิงก์', 'warn'); return; }
+  syncInFlight = true;
+  setSyncStatus('busy', 'กำลังส่งข้อมูล...');
+  SyncCore.push(cfg, DB, force ? null : syncLastSha).then(function (result) {
+    syncLastSha = result.sha;
+    syncInFlight = false;
+    setSyncStatus('ok', 'ซิงก์ล่าสุด ' + new Date().toLocaleTimeString('th-TH'));
+    updateSyncLastResult('ส่งข้อมูลขึ้นคลาวด์สำเร็จ เมื่อ ' + fmtDateTime(result.updatedAt));
+    toast('ส่งข้อมูลขึ้นคลาวด์สำเร็จ', 'success');
+  }).catch(function (err) {
+    syncInFlight = false;
+    if (err.code === 'CONFLICT') {
+      setSyncStatus('err', 'ชนกัน (conflict)');
+      updateSyncLastResult('ส่งข้อมูลไม่สำเร็จ: ข้อมูลฝั่งคลาวด์ใหม่กว่า กรุณากด "ดึงข้อมูลจากคลาวด์ (pull)" ก่อน แล้วค่อยลองใหม่');
+      toast('ข้อมูลชนกัน (CONFLICT) กรุณา pull ก่อน ห้ามทับเงียบๆ', 'error');
+    } else {
+      setSyncStatus('err', 'ส่งข้อมูลไม่สำเร็จ');
+      updateSyncLastResult('ส่งข้อมูลไม่สำเร็จ: ' + err.message);
+      toast('ส่งข้อมูลไม่สำเร็จ: ' + err.message, 'error');
+    }
+  });
+}
+
+/* ---------- Pull ---------- */
+function applyCloudData(cloudData) {
+  var def = defaultData();
+  DB = Object.assign({}, def, cloudData);
+  DB.settings = Object.assign({}, def.settings, cloudData.settings || {});
+  DB.settings.company = Object.assign({}, def.settings.company, (cloudData.settings||{}).company || {});
+  DB.settings.docNumberFormat = Object.assign({}, def.settings.docNumberFormat, (cloudData.settings||{}).docNumberFormat || {});
+  DB.settings.docNumberFormat.prefixByType = Object.assign({}, def.settings.docNumberFormat.prefixByType, ((cloudData.settings||{}).docNumberFormat||{}).prefixByType || {});
+  DB.contacts = cloudData.contacts || [];
+  DB.products = cloudData.products || [];
+  DB.documents = cloudData.documents || [];
+  DB.expenses = cloudData.expenses || [];
+  saveDBRaw();
+  showPage(document.querySelector('#mainNav button.active') ? document.querySelector('#mainNav button.active').dataset.page : 'dashboard');
+}
+
+function doSyncPull(silent) {
+  if (isFileProtocol()) { if (!silent) toast('เปิดไฟล์แบบ file:// ไม่สามารถซิงก์ได้ กรุณาเปิดผ่านเว็บ (https://) แทน', 'warn'); return; }
+  var cfg = loadSyncConfig();
+  if (!cfg.token) { if (!silent) toast('กรุณากรอก Personal Access Token ก่อนซิงก์', 'warn'); return; }
+  syncInFlight = true;
+  setSyncStatus('busy', 'กำลังดึงข้อมูล...');
+  SyncCore.pull(cfg).then(function (result) {
+    syncLastSha = result.sha;
+    syncInFlight = false;
+    var localUpdatedAt = DB && DB.updatedAt;
+    var cloudUpdatedAt = result.updatedAt;
+    var hasLocalData = (DB.documents && DB.documents.length) || (DB.contacts && DB.contacts.length) || (DB.expenses && DB.expenses.length);
+    if (silent && hasLocalData && localUpdatedAt && cloudUpdatedAt && new Date(cloudUpdatedAt) > new Date(localUpdatedAt)) {
+      // cloud ใหม่กว่า local ที่มีข้อมูลอยู่แล้ว -> ต้องถามยืนยันก่อนทับเสมอ
+      openSyncConflictModal(localUpdatedAt, cloudUpdatedAt, result.data);
+      setSyncStatus('ok', 'พบข้อมูลใหม่บนคลาวด์');
+      return;
+    }
+    if (!silent && hasLocalData && localUpdatedAt && cloudUpdatedAt) {
+      // pull แบบกดเอง และมีข้อมูล local อยู่ -> ให้เลือกเทียบเวลาเสมอ ยกเว้นไม่มี local data
+      openSyncConflictModal(localUpdatedAt, cloudUpdatedAt, result.data);
+      setSyncStatus('ok', 'พร้อมเลือกข้อมูล');
+      return;
+    }
+    applyCloudData(result.data);
+    setSyncStatus('ok', 'ดึงข้อมูลล่าสุด ' + new Date().toLocaleTimeString('th-TH'));
+    updateSyncLastResult('ดึงข้อมูลจากคลาวด์สำเร็จ เมื่อ ' + fmtDateTime(cloudUpdatedAt));
+    if (!silent) toast('ดึงข้อมูลจากคลาวด์สำเร็จ', 'success');
+  }).catch(function (err) {
+    syncInFlight = false;
+    if (err.code === 'NOT_FOUND') {
+      setSyncStatus('err', 'ยังไม่มีข้อมูลบนคลาวด์');
+      updateSyncLastResult('ยังไม่มีไฟล์ข้อมูลบนคลาวด์ ลองกด push เพื่อสร้างก่อน');
+      if (!silent) toast('ยังไม่มีข้อมูลบนคลาวด์ ลองกด push ก่อน', 'warn');
+    } else {
+      setSyncStatus('err', 'ดึงข้อมูลไม่สำเร็จ');
+      updateSyncLastResult('ดึงข้อมูลไม่สำเร็จ: ' + err.message);
+      if (!silent) toast('ดึงข้อมูลไม่สำเร็จ: ' + err.message, 'error');
+    }
+  });
+}
+
+/* ---------- Conflict modal: เทียบ updatedAt สองฝั่ง ให้ผู้ใช้เลือกเสมอ ---------- */
+var pendingCloudData = null;
+function openSyncConflictModal(localTime, cloudTime, cloudData) {
+  pendingCloudData = cloudData;
+  document.getElementById('syncConflictLocalTime').textContent = fmtDateTime(localTime);
+  document.getElementById('syncConflictCloudTime').textContent = fmtDateTime(cloudTime);
+  openModal('modalSyncConflict');
+}
+document.getElementById('btnSyncConflictCancel').addEventListener('click', function () {
+  pendingCloudData = null;
+  closeModal('modalSyncConflict');
+});
+document.getElementById('btnSyncConflictUseLocal').addEventListener('click', function () {
+  closeModal('modalSyncConflict');
+  pendingCloudData = null;
+  doSyncPush(true); // force push ทับคลาวด์
+});
+document.getElementById('btnSyncConflictUseCloud').addEventListener('click', function () {
+  if (pendingCloudData) {
+    applyCloudData(pendingCloudData);
+    toast('ใช้ข้อมูลจากคลาวด์แล้ว', 'success');
+    updateSyncLastResult('เลือกใช้ข้อมูลคลาวด์ เมื่อ ' + new Date().toLocaleString('th-TH'));
+  }
+  pendingCloudData = null;
+  closeModal('modalSyncConflict');
+});
+
+/* ---------- Auto-push debounce หลังบันทึกข้อมูล (wrap saveDB จากภายนอก ไม่แก้ตัวเดิม) ---------- */
+var saveDBRaw = saveDB;
+saveDB = function () {
+  saveDBRaw();
+  DB.updatedAt = DB.updatedAt || new Date().toISOString();
+  var cfg = loadSyncConfig();
+  if (cfg.auto && cfg.token && !isFileProtocol()) {
+    if (syncPushTimer) clearTimeout(syncPushTimer);
+    syncPushTimer = setTimeout(function () {
+      if (!syncInFlight) doSyncPush(false);
+    }, 3000);
+  }
+};
+
+/* ---------- ปุ่มในหน้าตั้งค่า ---------- */
+document.getElementById('btnSyncTest').addEventListener('click', syncTestConnection);
+document.getElementById('btnSyncPush').addEventListener('click', function () {
+  var cfg = currentSyncConfigFromForm();
+  saveSyncConfig(cfg);
+  doSyncPush(false);
+});
+document.getElementById('btnSyncPull').addEventListener('click', function () {
+  var cfg = currentSyncConfigFromForm();
+  saveSyncConfig(cfg);
+  doSyncPull(false);
+});
+document.getElementById('syncAutoToggle').addEventListener('change', function () {
+  var cfg = currentSyncConfigFromForm();
+  saveSyncConfig(cfg);
+});
+document.getElementById('syncOwner').addEventListener('change', function () { saveSyncConfig(currentSyncConfigFromForm()); });
+document.getElementById('syncRepo').addEventListener('change', function () { saveSyncConfig(currentSyncConfigFromForm()); });
+document.getElementById('syncToken').addEventListener('change', function () { saveSyncConfig(currentSyncConfigFromForm()); });
+
+// ผูก fillSyncForm เข้ากับ fillSettingsForm เดิมโดยไม่แก้ฟังก์ชันเดิม
+var fillSettingsFormRaw = fillSettingsForm;
+fillSettingsForm = function () {
+  fillSettingsFormRaw();
+  fillSyncForm();
+};
+
+/* =====================================================================
    Init
    ===================================================================== */
 function init() {
   loadDB();
   initReportDateRange();
   showPage('dashboard');
+  var cfg = loadSyncConfig();
+  if (cfg.auto && cfg.token && !isFileProtocol()) {
+    setSyncStatus('busy', 'กำลังซิงก์อัตโนมัติ...');
+    doSyncPull(true);
+  } else if (isFileProtocol()) {
+    setSyncStatus(null, 'ซิงก์ใช้ไม่ได้ (เปิดแบบ file://)');
+  } else if (cfg.token) {
+    setSyncStatus(null, 'ซิงก์อัตโนมัติปิดอยู่');
+  } else {
+    setSyncStatus(null, 'ยังไม่ได้ตั้งค่าซิงก์');
+  }
 }
 init();
 </script>
