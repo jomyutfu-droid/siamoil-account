@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โปรแกรมบัญชี - บริษัท สยามออยล์เทรด จำกัด</title>
+<style>
+:root{
+  --primary:#1565c0; --primary-dark:#0d47a1; --primary-light:#e3f2fd;
+  --accent:#00897b; --danger:#e53935; --warning:#fb8c00; --success:#43a047;
+  --bg:#f4f6f9; --card:#ffffff; --border:#dde3ea; --text:#1f2937; --text-mute:#6b7280;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; font-family: Sarabun, Tahoma, "Segoe UI", sans-serif;
+  background:var(--bg); color:var(--text); font-size:14px;
+}
+button, input, select, textarea{ font-family: inherit; font-size:14px; }
+a{ color:var(--primary); }
+
+/* ---------- Layout ---------- */
+#app{ display:flex; min-height:100vh; }
+#sidebar{
+  width:220px; background:var(--primary-dark); color:#fff; flex-shrink:0;
+  display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+#sidebar .brand{ padding:18px 16px; font-weight:700; font-size:16px; border-bottom:1px solid rgba(255,255,255,.15); line-height:1.4;}
+#sidebar .brand small{ display:block; font-weight:400; font-size:11px; opacity:.75; margin-top:4px;}
+#sidebar nav{ flex:1; padding:8px 0; }
+#sidebar nav button{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:right;
+  background:none; border:none; color:#cfe0f5; padding:12px 16px; cursor:pointer; font-size:14px;
+  border-right:3px solid transparent; justify-content:flex-start;
+}
+#sidebar nav button:hover{ background:rgba(255,255,255,.08); color:#fff; }
+#sidebar nav button.active{ background:rgba(255,255,255,.14); color:#fff; border-right-color:#ffca28; font-weight:600; }
+#sidebar .foot{ padding:10px 16px; font-size:11px; opacity:.6; border-top:1px solid rgba(255,255,255,.15); }
+
+#main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+#topbar{
+  background:var(--card); border-bottom:1px solid var(--border); padding:10px 20px;
+  display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50;
+}
+#topbar h1{ font-size:18px; margin:0; }
+#topbar .actions{ display:flex; gap:8px; }
+#content{ padding:20px; flex:1; }
+
+.page{ display:none; }
+.page.active{ display:block; }
+
+/* ---------- Card / table ---------- */
+.card{ background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px; }
+.card h2{ margin:0 0 12px; font-size:16px; color:var(--primary-dark); }
+.grid{ display:grid; gap:14px; }
+.grid.cols-4{ grid-template-columns:repeat(4,1fr); }
+.grid.cols-3{ grid-template-columns:repeat(3,1fr); }
+.grid.cols-2{ grid-template-columns:repeat(2,1fr); }
+@media (max-width: 900px){ .grid.cols-4{grid-template-columns:repeat(2,1fr);} .grid.cols-3{grid-template-columns:repeat(2,1fr);} }
+
+table{ width:100%; border-collapse:collapse; font-size:13px; }
+table th, table td{ border:1px solid var(--border); padding:7px 8px; text-align:right; }
+table th{ background:var(--primary-light); color:var(--primary-dark); font-weight:600; white-space:nowrap; }
+table td.text-l, table th.text-l{ text-align:right; }
+table tbody tr:hover{ background:#fafcff; }
+.table-wrap{ overflow-x:auto; }
+
+.kpi{ background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border-radius:8px; padding:16px; }
+.kpi .label{ font-size:12px; opacity:.85; }
+.kpi .value{ font-size:24px; font-weight:700; margin-top:6px; }
+.kpi.alt{ background:linear-gradient(135deg,#00897b,#00695c); }
+.kpi.warn{ background:linear-gradient(135deg,#fb8c00,#e65100); }
+.kpi.grey{ background:linear-gradient(135deg,#607d8b,#37474f); }
+
+/* ---------- Forms ---------- */
+label{ display:block; font-size:12px; color:var(--text-mute); margin-bottom:3px; }
+input[type=text], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea{
+  width:100%; padding:7px 9px; border:1px solid var(--border); border-radius:5px; background:#fff; color:var(--text);
+}
+textarea{ resize:vertical; min-height:50px; }
+.form-row{ margin-bottom:10px; }
+fieldset{ border:1px solid var(--border); border-radius:6px; padding:12px; margin-bottom:12px; }
+legend{ padding:0 6px; font-weight:600; color:var(--primary-dark); font-size:13px; }
+
+/* ---------- Buttons ---------- */
+button{ cursor:pointer; border-radius:6px; border:1px solid var(--border); background:#fff; color:var(--text); padding:8px 14px; }
+button.primary{ background:var(--primary); color:#fff; border-color:var(--primary); }
+button.primary:hover{ background:var(--primary-dark); }
+button.accent{ background:var(--accent); color:#fff; border-color:var(--accent); }
+button.danger{ background:#fff; color:var(--danger); border-color:var(--danger); }
+button.danger:hover{ background:var(--danger); color:#fff; }
+button.success{ background:var(--success); color:#fff; border-color:var(--success); }
+button.ghost{ background:transparent; border-color:transparent; color:var(--primary); }
+button.sm{ padding:4px 9px; font-size:12px; }
+button:disabled{ opacity:.5; cursor:not-allowed; }
+
+.badge{ display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+.badge.draft{ background:#eceff1; color:#455a64; }
+.badge.awaiting{ background:#fff3e0; color:#e65100; }
+.badge.paid{ background:#e8f5e9; color:#2e7d32; }
+.badge.void{ background:#fbe9e7; color:#c62828; text-decoration:line-through; }
+
+.toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.toolbar input, .toolbar select{ width:auto; min-width:150px; }
+.spacer{ flex:1; }
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-start; justify-content:center;
+  z-index:1000; overflow-y:auto; padding:30px 12px;
+}
+.modal-overlay.open{ display:flex; }
+.modal{ background:#fff; border-radius:8px; width:100%; max-width:760px; padding:20px; }
+.modal.wide{ max-width:960px; }
+.modal h3{ margin-top:0; color:var(--primary-dark); }
+.modal .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; border-top:1px solid var(--border); padding-top:12px; }
+
+.hint{ font-size:12px; color:var(--text-mute); margin-top:4px; }
+.text-right{ text-align:right; }
+.text-center{ text-align:center; }
+.mono{ font-variant-numeric:tabular-nums; }
+.mt-0{margin-top:0;}
+.empty-state{ text-align:center; padding:40px; color:var(--text-mute); }
+
+.toast-wrap{ position:fixed; bottom:16px; left:16px; z-index:2000; display:flex; flex-direction:column; gap:8px; }
+.toast{ background:#333; color:#fff; padding:10px 16px; border-radius:6px; font-size:13px; box-shadow:0 3px 10px rgba(0,0,0,.25); animation:fadein .2s; }
+.toast.success{ background:#2e7d32; }
+.toast.error{ background:#c62828; }
+.toast.warn{ background:#e65100; }
+@keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.line-items-table input{ padding:5px 6px; font-size:12.5px; }
+.totals-box{ margin-top:12px; display:flex; justify-content:flex-end; }
+.totals-box table{ width:340px; }
+.totals-box td{ border:none; padding:4px 6px; }
+.totals-box tr.grand td{ font-weight:700; font-size:15px; border-top:2px solid var(--primary); }
+
+.chart-bars{ display:flex; align-items:flex-end; gap:10px; height:180px; padding-top:20px; }
+.chart-bars .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+.chart-bars .bar{ width:60%; background:var(--primary); border-radius:4px 4px 0 0; position:relative; min-height:2px; }
+.chart-bars .bar.expense{ background:var(--danger); }
+.chart-bars .bar-val{ font-size:10px; margin-bottom:3px; color:var(--text-mute); }
+.chart-bars .bar-label{ font-size:11px; margin-top:6px; color:var(--text-mute); text-align:center;}
+.bar-group{ display:flex; gap:3px; width:100%; justify-content:center; align-items:flex-end; height:100%; }
+.bar-group .bar{ width:16px; }
+
+.doc-type-tabs{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.doc-type-tabs button{ border-radius:20px; padding:6px 14px; }
+.doc-type-tabs button.active{ background:var(--primary); color:#fff; border-color:var(--primary); }
+
+/* ---------- Print area ---------- */
+#print-area{ display:none; }
+@media print{
+  body *{ visibility:hidden; }
+  #print-area, #print-area *{ visibility:visible; }
+  #print-area{ display:block; position:absolute; top:0; left:0; width:100%; }
+  @page{ size:A4; margin:12mm; }
+}
+.doc-sheet{ width:186mm; min-height:260mm; margin:0 auto; background:#fff; padding:6mm; font-size:12.5px; color:#000; }
+.doc-sheet h2.doc-title{ text-align:center; font-size:20px; margin:2px 0 2px; letter-spacing:1px; }
+.doc-sheet .copy-tag{ text-align:center; font-size:12px; margin-bottom:8px; color:#333; }
+.doc-head{ display:flex; justify-content:space-between; gap:10px; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:8px;}
+.doc-head .seller{ width:56%; }
+.doc-head .seller .company-name{ font-size:15px; font-weight:700; }
+.doc-head .meta{ width:40%; }
+.doc-head .meta table{ width:100%; }
+.doc-head .meta td{ border:none; padding:1px 2px; font-size:12px; }
+.doc-buyer{ border:1px solid #000; padding:6px 8px; margin-bottom:8px; font-size:12px; }
+.doc-sheet table.items{ width:100%; border-collapse:collapse; margin-bottom:6px; }
+.doc-sheet table.items th, .doc-sheet table.items td{ border:1px solid #000; padding:4px 5px; font-size:12px; }
+.doc-sheet table.items th{ background:#eee; text-align:center; }
+.doc-foot-row{ display:flex; justify-content:space-between; gap:10px; }
+.doc-baht-text{ width:56%; border:1px solid #000; padding:6px 8px; font-size:12px; align-self:flex-start; }
+.doc-totals{ width:42%; }
+.doc-totals table{ width:100%; border-collapse:collapse; }
+.doc-totals td{ border:1px solid #000; padding:4px 6px; font-size:12px; }
+.doc-totals tr.grand td{ font-weight:700; font-size:13.5px; background:#f2f2f2; }
+.doc-signatures{ display:flex; justify-content:space-around; margin-top:34px; text-align:center; font-size:12px; }
+.doc-signatures .sig-box{ width:42%; }
+.doc-signatures .sig-line{ border-bottom:1px solid #000; height:48px; display:flex; align-items:flex-end; justify-content:center; }
+.doc-signatures img{ max-height:44px; }
+.doc-note{ font-size:11px; color:#333; margin-top:6px; }
+
+.badge-print{ display:inline-block; border:1px solid #000; padding:1px 6px; font-size:10px; border-radius:3px; margin-right:4px;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">สยามออยล์เทรด<br><small>โปรแกรมบัญชี v1 (offline)</small></div>
+    <nav id="mainNav">
+      <button data-page="dashboard" class="active">แดชบอร์ด</button>
+      <button data-page="sales">เอกสารขาย</button>
+      <button data-page="expenses">ค่าใช้จ่าย</button>
+      <button data-page="contacts">ลูกค้า/ผู้ขาย</button>
+      <button data-page="products">สินค้า</button>
+      <button data-page="reports">รายงาน</button>
+      <button data-page="settings">ตั้งค่า</button>
+    </nav>
+    <div class="foot">ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น<br>สำรองไฟล์ .json เป็นประจำ!</div>
+  </aside>
+
+  <div id="main">
+    <div id="topbar">
+      <h1 id="pageTitle">แดชบอร์ด</h1>
+      <div class="actions">
+        <button class="ghost sm" id="btnBackupTop" title="สำรองข้อมูล">⬇ สำรองข้อมูล</button>
+        <button class="ghost sm" id="btnRestoreTop" title="กู้คืนข้อมูล">⬆ กู้คืนข้อมูล</button>
+        <input type="file" id="fileRestore" accept=".json" style="display:none;">
+      </div>
+    </div>
+    <div id="content">
+
+      <!-- ================= DASHBOARD ================= -->
+      <section class="page active" id="page-dashboard">
+        <div class="grid cols-4" id="dashKpis"></div>
+        <div class="card">
+          <h2>ยอดขายเทียบค่าใช้จ่าย ย้อนหลัง 6 เดือน</h2>
+          <div id="dashChart"></div>
+          <div style="margin-top:8px; font-size:12px; color:var(--text-mute);">
+            <span style="color:var(--primary);">■</span> ยอดขาย (ก่อน VAT)
+            &nbsp;&nbsp;<span style="color:var(--danger);">■</span> ค่าใช้จ่าย
+          </div>
+        </div>
+        <div class="card">
+          <h2>ใบแจ้งหนี้ที่ยังไม่เก็บเงิน (ลูกหนี้ค้างชำระ)</h2>
+          <div class="table-wrap"><table id="dashAR"><thead><tr>
+            <th class="text-l">เลขที่</th><th class="text-l">ลูกค้า</th><th>วันครบกำหนด</th><th>ยอดรวม</th><th></th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ================= SALES ================= -->
+      <section class="page" id="page-sales">
+        <div class="card">
+          <div class="toolbar">
+            <div class="doc-type-tabs" id="salesTypeTabs">
+              <button data-type="all" class="active">ทั้งหมด</button>
+              <button data-type="quotation">ใบเสนอราคา</button>
+              <button data-type="invoice">ใบแจ้งหนี้</button>
+              <button data-type="taxInvoice">ใบกำกับภาษี/ใบเสร็จ</button>
+              <button data-type="creditNote">ใบลดหนี้</button>
+            </div>
+            <div class="spacer"></div>
+            <input type="text" id="salesSearch" placeholder="ค้นหาเลขที่/ชื่อลูกค้า...">
+            <button class="primary" id="btnNewDoc">+ สร้างเอกสารใหม่</button>
+          </div>
+          <div class="table-wrap"><table id="salesTable"><thead><tr>
+            <th class="text-l">ประเภท</th><th class="text-l">เลขที่</th><th>วันที่ออก</th><th class="text-l">ลูกค้า</th>
+            <th>ยอดรวม</th><th>สถานะ</th><th>การทำงาน</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ================= EXPENSES ================= -->
+      <section class="page" id="page-expenses">
+        <div class="card">
+          <div class="toolbar">
+            <input type="text" id="expSearch" placeholder="ค้นหาเลขที่/ผู้ขาย/รายละเอียด...">
+            <select id="expFilterCategory"><option value="">ทุกหมวด</option></select>
+            <div class="spacer"></div>
+            <button class="primary" id="btnNewExpense">+ บันทึกค่าใช้จ่าย</button>
+          </div>
+          <div class="table-wrap"><table id="expTable"><thead><tr>
+            <th class="text-l">เลขที่</th><th>วันที่</th><th class="text-l">ผู้ขาย</th><th class="text-l">หมวด</th>
+            <th>จำนวนเงิน</th><th>VAT</th><th>หัก ณ ที่จ่าย</th><th>สถานะ</th><th>การทำงาน</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ================= CONTACTS ================= -->
+      <section class="page" id="page-contacts">
+        <div class="card">
+          <div class="toolbar">
+            <input type="text" id="contactSearch" placeholder="ค้นหาชื่อ/เลขผู้เสียภาษี...">
+            <select id="contactFilterType">
+              <option value="">ทุกประเภท</option>
+              <option value="customer">ลูกค้า</option>
+              <option value="vendor">ผู้ขาย</option>
+              <option value="both">ลูกค้า/ผู้ขาย</option>
+            </select>
+            <div class="spacer"></div>
+            <button class="primary" id="btnNewContact">+ เพิ่มผู้ติดต่อ</button>
+          </div>
+          <div class="table-wrap"><table id="contactTable"><thead><tr>
+            <th class="text-l">ชื่อ</th><th class="text-l">ประเภท</th><th class="text-l">เลขผู้เสียภาษี</th>
+            <th class="text-l">สาขา</th><th class="text-l">โทร</th><th>การทำงาน</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ================= PRODUCTS ================= -->
+      <section class="page" id="page-products">
+        <div class="card">
+          <div class="toolbar">
+            <input type="text" id="productSearch" placeholder="ค้นหารหัส/ชื่อสินค้า...">
+            <div class="spacer"></div>
+            <button class="primary" id="btnNewProduct">+ เพิ่มสินค้า/บริการ</button>
+          </div>
+          <div class="table-wrap"><table id="productTable"><thead><tr>
+            <th class="text-l">รหัส</th><th class="text-l">ชื่อสินค้า/บริการ</th><th>หน่วย</th><th>ราคา</th><th>VAT</th><th>การทำงาน</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ================= REPORTS ================= -->
+      <section class="page" id="page-reports">
+        <div class="card">
+          <div class="toolbar">
+            <label style="margin:0;">ช่วงเดือน:</label>
+            <input type="month" id="reportFrom">
+            <span>ถึง</span>
+            <input type="month" id="reportTo">
+            <button class="primary sm" id="btnReportRefresh">แสดงรายงาน</button>
+          </div>
+          <div class="doc-type-tabs" id="reportTabs">
+            <button data-report="salesTax" class="active">รายงานภาษีขาย</button>
+            <button data-report="purchaseTax">รายงานภาษีซื้อ</button>
+            <button data-report="vat30">สรุป ภ.พ.30</button>
+            <button data-report="wht">รายงานหัก ณ ที่จ่าย</button>
+            <button data-report="pnl">งบกำไรขาดทุน</button>
+          </div>
+          <div id="reportBody"></div>
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS ================= -->
+      <section class="page" id="page-settings">
+        <div class="card">
+          <h2>ข้อมูลบริษัท</h2>
+          <div class="grid cols-2">
+            <div class="form-row"><label>ชื่อบริษัท</label><input type="text" id="stCompanyName"></div>
+            <div class="form-row"><label>เลขผู้เสียภาษี</label><input type="text" id="stTaxId" maxlength="13"></div>
+            <div class="form-row" style="grid-column:1/-1;"><label>ที่อยู่</label><textarea id="stAddress"></textarea></div>
+            <div class="form-row"><label>โทรศัพท์</label><input type="text" id="stPhone"></div>
+            <div class="form-row"><label>สาขา</label><input type="text" id="stBranch"></div>
+          </div>
+          <div class="grid cols-2">
+            <div class="form-row"><label>โลโก้บริษัท (รูปภาพ)</label><input type="file" id="stLogoFile" accept="image/*">
+              <div id="stLogoPreview" style="margin-top:6px;"></div></div>
+            <div class="form-row"><label>ลายเซ็นอิเล็กทรอนิกส์ (รูปภาพ)</label><input type="file" id="stSigFile" accept="image/*">
+              <div id="stSigPreview" style="margin-top:6px;"></div></div>
+          </div>
+          <button class="primary" id="btnSaveCompany">บันทึกข้อมูลบริษัท</button>
+        </div>
+
+        <div class="card">
+          <h2>ตั้งค่าเอกสาร</h2>
+          <div class="grid cols-3">
+            <div class="form-row"><label>อัตรา VAT (%)</label><input type="number" id="stVatRate" step="0.01"></div>
+            <div class="form-row"><label>รูปแบบราคา</label>
+              <select id="stPriceMode"><option value="false">ราคาไม่รวมภาษี (แนะนำ)</option><option value="true">ราคารวมภาษีแล้ว</option></select>
+            </div>
+          </div>
+          <fieldset>
+            <legend>คำนำหน้าเลขเอกสาร (Prefix)</legend>
+            <div class="grid cols-3">
+              <div class="form-row"><label>ใบเสนอราคา</label><input type="text" id="pfxQuotation"></div>
+              <div class="form-row"><label>ใบแจ้งหนี้</label><input type="text" id="pfxInvoice"></div>
+              <div class="form-row"><label>ใบกำกับภาษี/ใบเสร็จ</label><input type="text" id="pfxTaxInvoice"></div>
+              <div class="form-row"><label>ใบลดหนี้</label><input type="text" id="pfxCreditNote"></div>
+              <div class="form-row"><label>ค่าใช้จ่าย</label><input type="text" id="pfxExpense"></div>
+            </div>
+            <div class="hint">รูปแบบเลขที่: {prefix}{ปีเดือน}-{running 4 หลัก} เช่น TX202607-0001 (แก้เลขที่แต่ละใบเองได้ตอนออกเอกสาร)</div>
+          </fieldset>
+          <button class="primary" id="btnSaveDocSettings">บันทึกตั้งค่าเอกสาร</button>
+        </div>
+
+        <div class="card">
+          <h2>สำรอง/กู้คืนข้อมูล</h2>
+          <p class="hint">ข้อมูลทั้งหมดเก็บใน localStorage ของเบราว์เซอร์นี้เท่านั้น หากล้างประวัติ/แคชเบราว์เซอร์ ข้อมูลจะหายถาวร
+          <b>กรุณาสำรองข้อมูล (ดาวน์โหลดไฟล์ .json) เป็นประจำทุกสัปดาห์</b> และเก็บไฟล์ไว้ในที่ปลอดภัย</p>
+          <button class="primary" id="btnBackup">⬇ สำรองข้อมูล (ดาวน์โหลด .json)</button>
+          <button class="danger" id="btnRestore">⬆ กู้คืนข้อมูลจากไฟล์ .json</button>
+          <button class="ghost" id="btnResetAll">ล้างข้อมูลทั้งหมด (เริ่มใหม่)</button>
+        </div>
+
+        <div class="card">
+          <h2>ขอบเขตของโปรแกรม v1</h2>
+          <p class="hint">
+          <b>นอกขอบเขต v1:</b> เชื่อมธนาคารอัตโนมัติ, e-Tax Invoice, หลายผู้ใช้/หลายเครื่อง, สต๊อกสินค้า, เงินเดือน, งบดุล/บัญชีแยกประเภทเต็มรูป<br><br>
+          <b>คำเตือนสำคัญ:</b> โปรแกรมนี้ช่วยงานเอกสาร+รายงานภายใน แต่การปิดงบส่ง DBD/สรรพากรยังต้องผ่านสำนักงานบัญชี
+          และควรใช้คู่กับ FlowAccount (จ่ายแล้วถึง มี.ค. 2027) อย่างน้อย 1–2 เดือนเพื่อเทียบผลก่อนเลิกใช้จริง</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Document Editor ============ -->
+<div class="modal-overlay" id="modalDoc">
+  <div class="modal wide">
+    <h3 id="docModalTitle">สร้างเอกสารขาย</h3>
+    <input type="hidden" id="docId">
+    <div class="grid cols-3">
+      <div class="form-row"><label>ประเภทเอกสาร</label>
+        <select id="docType">
+          <option value="quotation">ใบเสนอราคา (QT)</option>
+          <option value="invoice">ใบแจ้งหนี้ (IV)</option>
+          <option value="taxInvoice">ใบกำกับภาษี/ใบเสร็จรับเงิน (TX)</option>
+          <option value="creditNote">ใบลดหนี้ (CN)</option>
+        </select>
+      </div>
+      <div class="form-row"><label>เลขที่เอกสาร</label><input type="text" id="docNumber"></div>
+      <div class="form-row"><label>วันที่ออกเอกสาร</label><input type="date" id="docIssueDate"></div>
+      <div class="form-row"><label>วันครบกำหนดชำระ</label><input type="date" id="docDueDate"></div>
+      <div class="form-row"><label>อ้างอิง (เช่น เลข PO)</label><input type="text" id="docReference"></div>
+      <div class="form-row" id="docCreditNoteRefWrap" style="display:none;"><label>อ้างอิงใบกำกับภาษีเดิม</label>
+        <select id="docLinkedFrom"></select></div>
+    </div>
+    <div class="form-row">
+      <label>ลูกค้า</label>
+      <input type="text" id="docContactSearch" list="contactList" placeholder="พิมพ์ค้นหาชื่อลูกค้า...">
+      <datalist id="contactList"></datalist>
+      <input type="hidden" id="docContactId">
+      <div class="hint" id="docContactInfo"></div>
+    </div>
+
+    <fieldset>
+      <legend>รายการสินค้า/บริการ</legend>
+      <div class="table-wrap">
+      <table class="line-items-table" id="docItemsTable">
+        <thead><tr>
+          <th class="text-l" style="width:26%;">สินค้า/บริการ</th><th style="width:9%;">จำนวน</th><th style="width:9%;">หน่วย</th>
+          <th style="width:14%;">ราคา/หน่วย</th><th style="width:12%;">ส่วนลด</th><th style="width:14%;">จำนวนเงิน</th><th style="width:6%;"></th>
+        </tr></thead>
+        <tbody id="docItemsBody"></tbody>
+      </table>
+      </div>
+      <button class="ghost sm" id="btnAddItem" type="button">+ เพิ่มรายการ</button>
+      <datalist id="productList"></datalist>
+    </fieldset>
+
+    <div class="grid cols-3">
+      <div class="form-row"><label>ส่วนลดท้ายบิล (บาท)</label><input type="number" id="docDiscountTotal" value="0" step="0.01"></div>
+      <div class="form-row"><label>อัตรา VAT (%)</label><input type="number" id="docVatRate" step="0.01"></div>
+      <div class="form-row"><label>หัก ณ ที่จ่าย</label>
+        <select id="docWhtRate">
+          <option value="0">ไม่มี (0%)</option>
+          <option value="1">1% (ขนส่ง)</option>
+          <option value="2">2% (โฆษณา)</option>
+          <option value="3">3% (บริการ/จ้างทำของ)</option>
+          <option value="5">5% (ค่าเช่า)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>หมายเหตุ</label><textarea id="docNote"></textarea></div>
+
+    <div class="totals-box">
+      <table>
+        <tr><td class="text-l">มูลค่าสินค้า/บริการ</td><td class="text-right mono" id="calcSubtotal">0.00</td></tr>
+        <tr><td class="text-l">ส่วนลดท้ายบิล</td><td class="text-right mono" id="calcDiscount">0.00</td></tr>
+        <tr><td class="text-l">มูลค่าหลังหักส่วนลด</td><td class="text-right mono" id="calcAfterDiscount">0.00</td></tr>
+        <tr><td class="text-l">ภาษีมูลค่าเพิ่ม (VAT)</td><td class="text-right mono" id="calcVat">0.00</td></tr>
+        <tr class="grand"><td class="text-l">ยอดรวมสุทธิ</td><td class="text-right mono" id="calcGrand">0.00</td></tr>
+        <tr><td class="text-l">หัก ณ ที่จ่าย</td><td class="text-right mono" id="calcWht">0.00</td></tr>
+        <tr class="grand"><td class="text-l">ยอดรับสุทธิ</td><td class="text-right mono" id="calcNet">0.00</td></tr>
+      </table>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="form-row"><label>สถานะ</label>
+        <select id="docStatus">
+          <option value="draft">ร่าง</option>
+          <option value="awaiting">รอเก็บเงิน</option>
+          <option value="paid">เก็บเงินแล้ว</option>
+          <option value="void">ยกเลิก</option>
+        </select>
+      </div>
+      <div class="form-row"><label>วันที่ชำระ</label><input type="date" id="docPaidDate"></div>
+      <div class="form-row"><label>ช่องทางชำระ</label>
+        <select id="docPaymentMethod">
+          <option value="">-</option><option value="cash">เงินสด</option>
+          <option value="transfer">โอนเงิน</option><option value="cheque">เช็ค</option><option value="credit">บัตรเครดิต</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="ghost" id="btnDocCancel">ยกเลิก</button>
+      <button class="accent" id="btnDocPreview">พิมพ์ / ดูตัวอย่าง</button>
+      <button class="primary" id="btnDocSave">บันทึกเอกสาร</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Expense Editor ============ -->
+<div class="modal-overlay" id="modalExpense">
+  <div class="modal">
+    <h3 id="expModalTitle">บันทึกค่าใช้จ่าย</h3>
+    <input type="hidden" id="expId">
+    <div class="grid cols-2">
+      <div class="form-row"><label>เลขที่เอกสาร</label><input type="text" id="expNumber"></div>
+      <div class="form-row"><label>วันที่</label><input type="date" id="expDate"></div>
+    </div>
+    <div class="form-row">
+      <label>ผู้ขาย/ผู้รับเงิน</label>
+      <input type="text" id="expVendorSearch" list="vendorList" placeholder="พิมพ์ค้นหาชื่อผู้ขาย...">
+      <datalist id="vendorList"></datalist>
+      <input type="hidden" id="expVendorId">
+    </div>
+    <div class="grid cols-2">
+      <div class="form-row"><label>หมวดค่าใช้จ่าย</label>
+        <select id="expCategory">
+          <option>ซื้อสินค้า/วัตถุดิบ</option><option>ค่าขนส่ง</option><option>ค่าเช่า</option>
+          <option>เงินเดือน</option><option>ค่าสาธารณูปโภค</option><option>ค่าน้ำมัน</option>
+          <option>ค่าบริการวิชาชีพ</option><option>ค่าโฆษณา</option><option>อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-row"><label>ช่องทางชำระ</label>
+        <select id="expPaymentMethod">
+          <option value="">-</option><option value="cash">เงินสด</option>
+          <option value="transfer">โอนเงิน</option><option value="cheque">เช็ค</option><option value="credit">บัตรเครดิต</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>รายละเอียด</label><textarea id="expDescription"></textarea></div>
+    <div class="grid cols-3">
+      <div class="form-row"><label>จำนวนเงิน (ก่อน VAT)</label><input type="number" id="expAmount" step="0.01" value="0"></div>
+      <div class="form-row"><label>มีใบกำกับภาษีหรือไม่</label>
+        <select id="expHasTaxInvoice"><option value="true">มี (คิด VAT ซื้อ)</option><option value="false">ไม่มี (ไม่คิด VAT)</option></select>
+      </div>
+      <div class="form-row"><label>เลขที่ใบกำกับผู้ขาย</label><input type="text" id="expVendorTaxInvoiceNo"></div>
+    </div>
+    <div class="grid cols-3">
+      <div class="form-row"><label>อัตรา VAT (%)</label><input type="number" id="expVatRate" value="7" step="0.01"></div>
+      <div class="form-row"><label>หัก ณ ที่จ่าย</label>
+        <select id="expWhtRate">
+          <option value="0">ไม่มี (0%)</option>
+          <option value="1">1% (ขนส่ง)</option>
+          <option value="2">2% (โฆษณา)</option>
+          <option value="3">3% (บริการ/จ้างทำของ)</option>
+          <option value="5">5% (ค่าเช่า)</option>
+        </select>
+      </div>
+      <div class="form-row"><label>สถานะ</label>
+        <select id="expStatus"><option value="unpaid">ยังไม่จ่าย</option><option value="paid">จ่ายแล้ว</option></select>
+      </div>
+    </div>
+    <div class="totals-box">
+      <table>
+        <tr><td class="text-l">มูลค่าก่อน VAT</td><td class="text-right mono" id="expCalcBase">0.00</td></tr>
+        <tr><td class="text-l">ภาษีมูลค่าเพิ่ม (VAT)</td><td class="text-right mono" id="expCalcVat">0.00</td></tr>
+        <tr class="grand"><td class="text-l">ยอดรวม</td><td class="text-right mono" id="expCalcTotal">0.00</td></tr>
+        <tr><td class="text-l">หัก ณ ที่จ่าย</td><td class="text-right mono" id="expCalcWht">0.00</td></tr>
+        <tr class="grand"><td class="text-l">ยอดจ่ายสุทธิ</td><td class="text-right mono" id="expCalcNet">0.00</td></tr>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnExpCancel">ยกเลิก</button>
+      <button class="primary" id="btnExpSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Contact Editor ============ -->
+<div class="modal-overlay" id="modalContact">
+  <div class="modal">
+    <h3 id="contactModalTitle">เพิ่มผู้ติดต่อ</h3>
+    <input type="hidden" id="contactId">
+    <div class="grid cols-2">
+      <div class="form-row"><label>ชื่อ</label><input type="text" id="contactName"></div>
+      <div class="form-row"><label>ประเภท</label>
+        <select id="contactType"><option value="customer">ลูกค้า</option><option value="vendor">ผู้ขาย</option><option value="both">ลูกค้า/ผู้ขาย</option></select>
+      </div>
+      <div class="form-row"><label>เลขผู้เสียภาษี</label><input type="text" id="contactTaxId" maxlength="13"></div>
+      <div class="form-row"><label>สาขา</label><input type="text" id="contactBranch" value="สำนักงานใหญ่"></div>
+      <div class="form-row" style="grid-column:1/-1;"><label>ที่อยู่</label><textarea id="contactAddress"></textarea></div>
+      <div class="form-row"><label>โทรศัพท์</label><input type="text" id="contactPhone"></div>
+      <div class="form-row"><label>อีเมล</label><input type="email" id="contactEmail"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnContactCancel">ยกเลิก</button>
+      <button class="primary" id="btnContactSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Product Editor ============ -->
+<div class="modal-overlay" id="modalProduct">
+  <div class="modal">
+    <h3 id="productModalTitle">เพิ่มสินค้า/บริการ</h3>
+    <input type="hidden" id="productId">
+    <div class="grid cols-2">
+      <div class="form-row"><label>รหัสสินค้า</label><input type="text" id="productCode"></div>
+      <div class="form-row"><label>ชื่อสินค้า/บริการ</label><input type="text" id="productName"></div>
+      <div class="form-row"><label>หน่วยนับ</label><input type="text" id="productUnit" value="หน่วย"></div>
+      <div class="form-row"><label>ราคา/หน่วย</label><input type="number" id="productPrice" step="0.01" value="0"></div>
+      <div class="form-row"><label>ประเภทภาษี</label>
+        <select id="productVatType"><option value="vat7">VAT 7%</option><option value="vat0">VAT 0%</option><option value="exempt">ยกเว้นภาษี</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnProductCancel">ยกเลิก</button>
+      <button class="primary" id="btnProductSave">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CONFIRM MODAL ============ -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="confirmTitle">ยืนยันการทำรายการ</h3>
+    <p id="confirmMsg"></p>
+    <div class="modal-actions">
+      <button class="ghost" id="btnConfirmCancel">ยกเลิก</button>
+      <button class="danger" id="btnConfirmOk">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ============ PRINT AREA ============ -->
+<div id="print-area">
+  <div class="doc-sheet" id="printSheet"></div>
+</div>
+
+<script>
+/* =====================================================================
+   AcctCore — โมดูลคำนวณหลัก (ปัดเศษ, คำนวณเอกสาร, แปลงตัวเลขเป็นตัวอักษรไทย, รันเลขเอกสาร)
+   ทดสอบแยกต่างหากด้วย Node.js ผ่าน test_core.js (เคส 8 ข้อ + เสริม ครบ 28 assertion ผ่านทั้งหมด)
+   ===================================================================== */
+var AcctCore = (function () {
+  'use strict';
+
+  function round2(n) {
+    if (!isFinite(n)) return 0;
+    var sign = n < 0 ? -1 : 1;
+    var abs = Math.abs(n);
+    var scaled = abs * 100 + 1e-8;
+    var rounded = Math.floor(scaled + 0.5);
+    return sign * (rounded / 100);
+  }
+
+  function calcDocument(input) {
+    input = input || {};
+    var items = input.items || [];
+    var discountTotal = Number(input.discountTotal) || 0;
+    var vatRate = input.vatRate === undefined || input.vatRate === null ? 0 : Number(input.vatRate);
+    var whtRate = input.whtRate === undefined || input.whtRate === null ? 0 : Number(input.whtRate);
+
+    var subtotal = 0;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var qty = Number(it.qty) || 0;
+      var price = Number(it.price) || 0;
+      var lineDiscount = Number(it.discount) || 0;
+      subtotal += (qty * price - lineDiscount);
+    }
+    subtotal = round2(subtotal);
+
+    var afterDiscount = round2(subtotal - discountTotal);
+    var vat = round2(afterDiscount * (vatRate / 100));
+    var grandTotal = round2(afterDiscount + vat);
+    var wht = round2(afterDiscount * (whtRate / 100));
+    var netReceive = round2(grandTotal - wht);
+
+    return {
+      subtotal: subtotal, discountTotal: round2(discountTotal), afterDiscount: afterDiscount,
+      vat: vat, grandTotal: grandTotal, wht: wht, netReceive: netReceive
+    };
+  }
+
+  var THAI_DIGITS = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
+  var THAI_POSITIONS = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+
+  function readInteger(numStr) {
+    numStr = String(numStr).replace(/^0+(?=\d)/, '');
+    if (numStr === '0') return 'ศูนย์';
+    var groups = [];
+    var s = numStr;
+    while (s.length > 0) {
+      if (s.length <= 6) { groups.unshift(s); s = ''; }
+      else { var cut = s.length - 6; groups.unshift(s.slice(cut)); s = s.slice(0, cut); }
+    }
+    var result = '';
+    for (var g = 0; g < groups.length; g++) {
+      var chunk = groups[g];
+      var chunkVal = g > 0 ? chunk.padStart(6, '0') : chunk;
+      var chunkText = readChunk(chunkVal);
+      if (chunkText !== '') {
+        result += chunkText;
+        if (g < groups.length - 1) result += 'ล้าน';
+      }
+    }
+    return result;
+  }
+
+  function readChunk(chunk) {
+    var len = chunk.length;
+    var text = '';
+    for (var i = 0; i < len; i++) {
+      var digit = parseInt(chunk[i], 10);
+      var posFromRight = len - i - 1;
+      if (digit === 0) continue;
+      if (posFromRight === 0) {
+        text += (digit === 1 && text !== '') ? 'เอ็ด' : THAI_DIGITS[digit];
+      } else if (posFromRight === 1) {
+        if (digit === 1) text += 'สิบ';
+        else if (digit === 2) text += 'ยี่สิบ';
+        else text += THAI_DIGITS[digit] + 'สิบ';
+      } else {
+        text += THAI_DIGITS[digit] + THAI_POSITIONS[posFromRight];
+      }
+    }
+    return text;
+  }
+
+  function bahtText(amount) {
+    var num = Number(amount);
+    if (!isFinite(num)) num = 0;
+    var negative = num < 0;
+    num = Math.abs(round2(num));
+    var fixed = num.toFixed(2);
+    var parts = fixed.split('.');
+    var bahtWords = readInteger(parts[0]);
+    var satangNum = parseInt(parts[1], 10);
+    var result = (negative ? 'ลบ' : '') + bahtWords + 'บาท';
+    result += satangNum === 0 ? 'ถ้วน' : (readInteger(String(satangNum)) + 'สตางค์');
+    return result;
+  }
+
+  function generateDocNumber(opts) {
+    opts = opts || {};
+    var prefix = opts.prefix || 'DOC';
+    var pattern = opts.pattern || '{prefix}{YYYY}{MM}-{run4}';
+    var date = opts.date instanceof Date ? opts.date : new Date(opts.date || Date.now());
+    var yyyy = String(date.getFullYear());
+    var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var existingNumbers = opts.existingNumbers || [];
+    var base = pattern.replace('{prefix}', prefix).replace('{YYYY}', yyyy).replace('{MM}', mm);
+    var beforeRun = base.split('{run4}')[0];
+    var afterRun = base.split('{run4}')[1] || '';
+    var maxRun = 0;
+    for (var i = 0; i < existingNumbers.length; i++) {
+      var num = existingNumbers[i];
+      if (typeof num !== 'string') continue;
+      var matchesPrefix = num.indexOf(beforeRun) === 0;
+      var matchesSuffix = afterRun ? num.slice(-afterRun.length) === afterRun : true;
+      if (matchesPrefix && matchesSuffix) {
+        var runStr = afterRun ? num.slice(beforeRun.length, num.length - afterRun.length) : num.slice(beforeRun.length);
+        var runVal = parseInt(runStr, 10);
+        if (!isNaN(runVal) && runVal > maxRun) maxRun = runVal;
+      }
+    }
+    var runStr4 = String(maxRun + 1).padStart(4, '0');
+    return beforeRun + runStr4 + afterRun;
+  }
+
+  return { round2: round2, calcDocument: calcDocument, bahtText: bahtText, readInteger: readInteger, generateDocNumber: generateDocNumber };
+})();
+
+/* =====================================================================
+   ระบบหลักของแอป
+   ===================================================================== */
+var STORAGE_KEY = 'siamoil_acct_v1';
+
+var DOC_TYPE_LABEL = { quotation:'ใบเสนอราคา', invoice:'ใบแจ้งหนี้', taxInvoice:'ใบกำกับภาษี/ใบเสร็จรับเงิน', creditNote:'ใบลดหนี้' };
+var DOC_TYPE_SHORT = { quotation:'QT', invoice:'IV', taxInvoice:'TX', creditNote:'CN' };
+var STATUS_LABEL = { draft:'ร่าง', awaiting:'รอเก็บเงิน', paid:'เก็บเงินแล้ว', void:'ยกเลิก' };
+var PAYMENT_LABEL = { cash:'เงินสด', transfer:'โอนเงิน', cheque:'เช็ค', credit:'บัตรเครดิต', '':'-' };
+
+function defaultData() {
+  return {
+    settings: {
+      company: {
+        name: 'บริษัท สยามออยล์เทรด จำกัด',
+        taxId: '0905568006158',
+        address: '288/1 หมู่ 6 ต.ทุ่งใหญ่ อ.หาดใหญ่ จ.สงขลา 90110',
+        phone: '0941894212',
+        branch: 'สำนักงานใหญ่',
+        logo: '',
+        signature: ''
+      },
+      vatRate: 7,
+      priceIncludesVat: false,
+      docNumberFormat: {
+        prefixByType: { quotation:'QT', invoice:'IV', taxInvoice:'TX', receipt:'RE', creditNote:'CN', expense:'EX' },
+        pattern: '{prefix}{YYYY}{MM}-{run4}'
+      }
+    },
+    contacts: [],
+    products: [],
+    documents: [],
+    expenses: []
+  };
+}
+
+var DB = null;
+
+function loadDB() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { DB = defaultData(); saveDB(); return; }
+    var parsed = JSON.parse(raw);
+    // merge กับ default เพื่อกันกรณี field ขาด
+    var def = defaultData();
+    DB = Object.assign({}, def, parsed);
+    DB.settings = Object.assign({}, def.settings, parsed.settings || {});
+    DB.settings.company = Object.assign({}, def.settings.company, (parsed.settings||{}).company || {});
+    DB.settings.docNumberFormat = Object.assign({}, def.settings.docNumberFormat, (parsed.settings||{}).docNumberFormat || {});
+    DB.settings.docNumberFormat.prefixByType = Object.assign({}, def.settings.docNumberFormat.prefixByType, ((parsed.settings||{}).docNumberFormat||{}).prefixByType || {});
+    DB.contacts = parsed.contacts || [];
+    DB.products = parsed.products || [];
+    DB.documents = parsed.documents || [];
+    DB.expenses = parsed.expenses || [];
+  } catch (e) {
+    console.error('โหลดข้อมูลผิดพลาด', e);
+    DB = defaultData();
+  }
+}
+
+function saveDB() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+}
+
+function uid(prefix) {
+  return (prefix || 'id') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+
+/* ---------- Toast ---------- */
+function toast(msg, type) {
+  var wrap = document.getElementById('toastWrap');
+  var el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(function () { el.remove(); }, 3200);
+}
+
+/* ---------- Confirm modal ---------- */
+var confirmCallback = null;
+function askConfirm(msg, onOk, title) {
+  document.getElementById('confirmTitle').textContent = title || 'ยืนยันการทำรายการ';
+  document.getElementById('confirmMsg').textContent = msg;
+  confirmCallback = onOk;
+  openModal('modalConfirm');
+}
+document.getElementById('btnConfirmOk').addEventListener('click', function () {
+  closeModal('modalConfirm');
+  if (confirmCallback) confirmCallback();
+  confirmCallback = null;
+});
+document.getElementById('btnConfirmCancel').addEventListener('click', function () {
+  closeModal('modalConfirm'); confirmCallback = null;
+});
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ---------- Number formatting ---------- */
+function fmt(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtInt(n) { return (Number(n)||0).toLocaleString('th-TH'); }
+
+/* ---------- Navigation ---------- */
+var PAGE_TITLES = {
+  dashboard:'แดชบอร์ด', sales:'เอกสารขาย', expenses:'ค่าใช้จ่าย',
+  contacts:'ลูกค้า/ผู้ขาย', products:'สินค้า', reports:'รายงาน', settings:'ตั้งค่า'
+};
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('#mainNav button').forEach(function (b) { b.classList.toggle('active', b.dataset.page === name); });
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[name];
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'sales') renderSalesTable();
+  if (name === 'expenses') renderExpenseTable();
+  if (name === 'contacts') renderContactTable();
+  if (name === 'products') renderProductTable();
+  if (name === 'reports') renderReport();
+  if (name === 'settings') fillSettingsForm();
+}
+document.getElementById('mainNav').addEventListener('click', function (e) {
+  var btn = e.target.closest('button[data-page]');
+  if (btn) showPage(btn.dataset.page);
+});
+
+/* =====================================================================
+   เฟส 1: Settings + backup/restore
+   ===================================================================== */
+function fillSettingsForm() {
+  var c = DB.settings.company;
+  document.getElementById('stCompanyName').value = c.name || '';
+  document.getElementById('stTaxId').value = c.taxId || '';
+  document.getElementById('stAddress').value = c.address || '';
+  document.getElementById('stPhone').value = c.phone || '';
+  document.getElementById('stBranch').value = c.branch || '';
+  document.getElementById('stVatRate').value = DB.settings.vatRate;
+  document.getElementById('stPriceMode').value = String(!!DB.settings.priceIncludesVat);
+
+  var pfx = DB.settings.docNumberFormat.prefixByType;
+  document.getElementById('pfxQuotation').value = pfx.quotation || 'QT';
+  document.getElementById('pfxInvoice').value = pfx.invoice || 'IV';
+  document.getElementById('pfxTaxInvoice').value = pfx.taxInvoice || 'TX';
+  document.getElementById('pfxCreditNote').value = pfx.creditNote || 'CN';
+  document.getElementById('pfxExpense').value = pfx.expense || 'EX';
+
+  var logoPrev = document.getElementById('stLogoPreview');
+  logoPrev.innerHTML = c.logo ? '<img src="'+c.logo+'" style="max-height:60px;">' : '<span class="hint">ยังไม่ได้ตั้งค่า</span>';
+  var sigPrev = document.getElementById('stSigPreview');
+  sigPrev.innerHTML = c.signature ? '<img src="'+c.signature+'" style="max-height:60px;">' : '<span class="hint">ยังไม่ได้ตั้งค่า</span>';
+}
+
+document.getElementById('btnSaveCompany').addEventListener('click', function () {
+  DB.settings.company.name = document.getElementById('stCompanyName').value.trim();
+  DB.settings.company.taxId = document.getElementById('stTaxId').value.trim();
+  DB.settings.company.address = document.getElementById('stAddress').value.trim();
+  DB.settings.company.phone = document.getElementById('stPhone').value.trim();
+  DB.settings.company.branch = document.getElementById('stBranch').value.trim();
+  saveDB();
+  toast('บันทึกข้อมูลบริษัทแล้ว', 'success');
+});
+
+function readFileAsDataUrl(file, cb) {
+  var reader = new FileReader();
+  reader.onload = function (e) { cb(e.target.result); };
+  reader.readAsDataURL(file);
+}
+document.getElementById('stLogoFile').addEventListener('change', function (e) {
+  var f = e.target.files[0]; if (!f) return;
+  readFileAsDataUrl(f, function (dataUrl) {
+    DB.settings.company.logo = dataUrl; saveDB(); fillSettingsForm();
+    toast('อัปโหลดโลโก้แล้ว (อย่าลืมกดบันทึกข้อมูลบริษัท)', 'success');
+  });
+});
+document.getElementById('stSigFile').addEventListener('change', function (e) {
+  var f = e.target.files[0]; if (!f) return;
+  readFileAsDataUrl(f, function (dataUrl) {
+    DB.settings.company.signature = dataUrl; saveDB(); fillSettingsForm();
+    toast('อัปโหลดลายเซ็นแล้ว (อย่าลืมกดบันทึกข้อมูลบริษัท)', 'success');
+  });
+});
+
+document.getElementById('btnSaveDocSettings').addEventListener('click', function () {
+  DB.settings.vatRate = Number(document.getElementById('stVatRate').value) || 0;
+  DB.settings.priceIncludesVat = document.getElementById('stPriceMode').value === 'true';
+  var pfx = DB.settings.docNumberFormat.prefixByType;
+  pfx.quotation = document.getElementById('pfxQuotation').value.trim() || 'QT';
+  pfx.invoice = document.getElementById('pfxInvoice').value.trim() || 'IV';
+  pfx.taxInvoice = document.getElementById('pfxTaxInvoice').value.trim() || 'TX';
+  pfx.creditNote = document.getElementById('pfxCreditNote').value.trim() || 'CN';
+  pfx.expense = document.getElementById('pfxExpense').value.trim() || 'EX';
+  saveDB();
+  toast('บันทึกตั้งค่าเอกสารแล้ว', 'success');
+});
+
+function doBackup() {
+  var dataStr = JSON.stringify(DB, null, 2);
+  var blob = new Blob([dataStr], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var now = new Date();
+  var stamp = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') +
+              '-' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
+  a.href = url;
+  a.download = 'สำรองข้อมูลบัญชีสยามออยล์เทรด_' + stamp + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('สำรองข้อมูลเรียบร้อยแล้ว', 'success');
+}
+document.getElementById('btnBackup').addEventListener('click', doBackup);
+document.getElementById('btnBackupTop').addEventListener('click', doBackup);
+
+function doRestoreTrigger() { document.getElementById('fileRestore').click(); }
+document.getElementById('btnRestore').addEventListener('click', doRestoreTrigger);
+document.getElementById('btnRestoreTop').addEventListener('click', doRestoreTrigger);
+
+document.getElementById('fileRestore').addEventListener('change', function (e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function (ev) {
+    try {
+      var parsed = JSON.parse(ev.target.result);
+      if (!parsed || typeof parsed !== 'object') throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
+      askConfirm('การกู้คืนข้อมูลจะเขียนทับข้อมูลปัจจุบันทั้งหมด ต้องการดำเนินการต่อหรือไม่?', function () {
+        var def = defaultData();
+        DB = Object.assign({}, def, parsed);
+        DB.settings = Object.assign({}, def.settings, parsed.settings || {});
+        DB.settings.company = Object.assign({}, def.settings.company, (parsed.settings||{}).company || {});
+        DB.settings.docNumberFormat = Object.assign({}, def.settings.docNumberFormat, (parsed.settings||{}).docNumberFormat || {});
+        DB.contacts = parsed.contacts || [];
+        DB.products = parsed.products || [];
+        DB.documents = parsed.documents || [];
+        DB.expenses = parsed.expenses || [];
+        saveDB();
+        toast('กู้คืนข้อมูลสำเร็จ', 'success');
+        showPage('dashboard'); showPage('dashboard');
+        document.querySelectorAll('#mainNav button').forEach(function(b){b.classList.toggle('active', b.dataset.page==='dashboard');});
+      }, 'ยืนยันการกู้คืนข้อมูล');
+    } catch (err) {
+      toast('ไม่สามารถอ่านไฟล์นี้ได้: ' + err.message, 'error');
+    }
+    document.getElementById('fileRestore').value = '';
+  };
+  reader.readAsText(f, 'UTF-8');
+});
+
+document.getElementById('btnResetAll').addEventListener('click', function () {
+  askConfirm('ต้องการล้างข้อมูลทั้งหมดและเริ่มต้นใหม่หรือไม่? (แนะนำให้สำรองข้อมูลก่อน) การกระทำนี้ย้อนกลับไม่ได้', function () {
+    DB = defaultData();
+    saveDB();
+    toast('ล้างข้อมูลทั้งหมดแล้ว', 'warn');
+    showPage('dashboard');
+  }, 'ยืนยันการล้างข้อมูลทั้งหมด');
+});
+
+/* =====================================================================
+   เฟส 2: ทะเบียนลูกค้า/ผู้ขาย + สินค้า
+   ===================================================================== */
+function renderContactTable() {
+  var tbody = document.querySelector('#contactTable tbody');
+  var search = document.getElementById('contactSearch').value.trim().toLowerCase();
+  var filterType = document.getElementById('contactFilterType').value;
+  var rows = DB.contacts.filter(function (c) {
+    var matchSearch = !search || (c.name||'').toLowerCase().indexOf(search) >= 0 || (c.taxId||'').indexOf(search) >= 0;
+    var matchType = !filterType || c.type === filterType;
+    return matchSearch && matchType;
+  });
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ยังไม่มีข้อมูล / ไม่พบรายการที่ค้นหา</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function (c) {
+    var typeLabel = { customer:'ลูกค้า', vendor:'ผู้ขาย', both:'ลูกค้า/ผู้ขาย' }[c.type] || c.type;
+    return '<tr>' +
+      '<td class="text-l">' + escapeHtml(c.name) + '</td>' +
+      '<td class="text-l">' + typeLabel + '</td>' +
+      '<td class="text-l mono">' + escapeHtml(c.taxId||'-') + '</td>' +
+      '<td class="text-l">' + escapeHtml(c.branch||'-') + '</td>' +
+      '<td class="text-l">' + escapeHtml(c.phone||'-') + '</td>' +
+      '<td><button class="ghost sm" onclick="editContact(\'' + c.id + '\')">แก้ไข</button> ' +
+      '<button class="danger sm" onclick="deleteContact(\'' + c.id + '\')">ลบ</button></td>' +
+      '</tr>';
+  }).join('');
+}
+document.getElementById('contactSearch').addEventListener('input', renderContactTable);
+document.getElementById('contactFilterType').addEventListener('change', renderContactTable);
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
+
+document.getElementById('btnNewContact').addEventListener('click', function () { openContactModal(null); });
+function openContactModal(id) {
+  var c = id ? DB.contacts.find(function (x) { return x.id === id; }) : null;
+  document.getElementById('contactModalTitle').textContent = c ? 'แก้ไขผู้ติดต่อ' : 'เพิ่มผู้ติดต่อ';
+  document.getElementById('contactId').value = c ? c.id : '';
+  document.getElementById('contactName').value = c ? c.name : '';
+  document.getElementById('contactType').value = c ? c.type : 'customer';
+  document.getElementById('contactTaxId').value = c ? c.taxId : '';
+  document.getElementById('contactBranch').value = c ? c.branch : 'สำนักงานใหญ่';
+  document.getElementById('contactAddress').value = c ? c.address : '';
+  document.getElementById('contactPhone').value = c ? c.phone : '';
+  document.getElementById('contactEmail').value = c ? c.email : '';
+  openModal('modalContact');
+}
+window.editContact = function (id) { openContactModal(id); };
+window.deleteContact = function (id) {
+  askConfirm('ต้องการลบผู้ติดต่อนี้หรือไม่?', function () {
+    DB.contacts = DB.contacts.filter(function (c) { return c.id !== id; });
+    saveDB(); renderContactTable();
+    toast('ลบแล้ว', 'success');
+  });
+};
+document.getElementById('btnContactCancel').addEventListener('click', function () { closeModal('modalContact'); });
+document.getElementById('btnContactSave').addEventListener('click', function () {
+  var name = document.getElementById('contactName').value.trim();
+  if (!name) { toast('กรุณากรอกชื่อ', 'error'); return; }
+  var id = document.getElementById('contactId').value;
+  var obj = {
+    id: id || uid('ct'),
+    type: document.getElementById('contactType').value,
+    name: name,
+    taxId: document.getElementById('contactTaxId').value.trim(),
+    branch: document.getElementById('contactBranch').value.trim() || 'สำนักงานใหญ่',
+    address: document.getElementById('contactAddress').value.trim(),
+    phone: document.getElementById('contactPhone').value.trim(),
+    email: document.getElementById('contactEmail').value.trim()
+  };
+  if (id) {
+    var idx = DB.contacts.findIndex(function (c) { return c.id === id; });
+    DB.contacts[idx] = obj;
+  } else {
+    DB.contacts.push(obj);
+  }
+  saveDB();
+  closeModal('modalContact');
+  renderContactTable();
+  toast('บันทึกแล้ว', 'success');
+});
+
+/* ---------- Products ---------- */
+function renderProductTable() {
+  var tbody = document.querySelector('#productTable tbody');
+  var search = document.getElementById('productSearch').value.trim().toLowerCase();
+  var rows = DB.products.filter(function (p) {
+    return !search || (p.name||'').toLowerCase().indexOf(search) >= 0 || (p.code||'').toLowerCase().indexOf(search) >= 0;
+  });
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ยังไม่มีข้อมูล / ไม่พบรายการที่ค้นหา</td></tr>';
+    return;
+  }
+  var vatLabel = { vat7:'VAT 7%', vat0:'VAT 0%', exempt:'ยกเว้นภาษี' };
+  tbody.innerHTML = rows.map(function (p) {
+    return '<tr>' +
+      '<td class="text-l mono">' + escapeHtml(p.code||'-') + '</td>' +
+      '<td class="text-l">' + escapeHtml(p.name) + '</td>' +
+      '<td>' + escapeHtml(p.unit||'-') + '</td>' +
+      '<td class="mono">' + fmt(p.price) + '</td>' +
+      '<td>' + (vatLabel[p.vatType]||'-') + '</td>' +
+      '<td><button class="ghost sm" onclick="editProduct(\'' + p.id + '\')">แก้ไข</button> ' +
+      '<button class="danger sm" onclick="deleteProduct(\'' + p.id + '\')">ลบ</button></td>' +
+      '</tr>';
+  }).join('');
+}
+document.getElementById('productSearch').addEventListener('input', renderProductTable);
+document.getElementById('btnNewProduct').addEventListener('click', function () { openProductModal(null); });
+function openProductModal(id) {
+  var p = id ? DB.products.find(function (x) { return x.id === id; }) : null;
+  document.getElementById('productModalTitle').textContent = p ? 'แก้ไขสินค้า/บริการ' : 'เพิ่มสินค้า/บริการ';
+  document.getElementById('productId').value = p ? p.id : '';
+  document.getElementById('productCode').value = p ? p.code : '';
+  document.getElementById('productName').value = p ? p.name : '';
+  document.getElementById('productUnit').value = p ? p.unit : 'หน่วย';
+  document.getElementById('productPrice').value = p ? p.price : 0;
+  document.getElementById('productVatType').value = p ? p.vatType : 'vat7';
+  openModal('modalProduct');
+}
+window.editProduct = function (id) { openProductModal(id); };
+window.deleteProduct = function (id) {
+  askConfirm('ต้องการลบสินค้า/บริการนี้หรือไม่?', function () {
+    DB.products = DB.products.filter(function (p) { return p.id !== id; });
+    saveDB(); renderProductTable();
+    toast('ลบแล้ว', 'success');
+  });
+};
+document.getElementById('btnProductCancel').addEventListener('click', function () { closeModal('modalProduct'); });
+document.getElementById('btnProductSave').addEventListener('click', function () {
+  var name = document.getElementById('productName').value.trim();
+  if (!name) { toast('กรุณากรอกชื่อสินค้า/บริการ', 'error'); return; }
+  var id = document.getElementById('productId').value;
+  var obj = {
+    id: id || uid('pd'),
+    code: document.getElementById('productCode').value.trim(),
+    name: name,
+    unit: document.getElementById('productUnit').value.trim() || 'หน่วย',
+    price: Number(document.getElementById('productPrice').value) || 0,
+    vatType: document.getElementById('productVatType').value
+  };
+  if (id) {
+    var idx = DB.products.findIndex(function (p) { return p.id === id; });
+    DB.products[idx] = obj;
+  } else {
+    DB.products.push(obj);
+  }
+  saveDB();
+  closeModal('modalProduct');
+  renderProductTable();
+  toast('บันทึกแล้ว', 'success');
+});
+
+/* =====================================================================
+   เฟส 3+4: เอกสารขาย + คำนวณ + รันเลข + สถานะ + แปลงเอกสาร + พิมพ์
+   ===================================================================== */
+var currentSalesTypeFilter = 'all';
+document.getElementById('salesTypeTabs').addEventListener('click', function (e) {
+  var btn = e.target.closest('button[data-type]');
+  if (!btn) return;
+  currentSalesTypeFilter = btn.dataset.type;
+  document.querySelectorAll('#salesTypeTabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+  renderSalesTable();
+});
+document.getElementById('salesSearch').addEventListener('input', renderSalesTable);
+
+function renderSalesTable() {
+  var tbody = document.querySelector('#salesTable tbody');
+  var search = document.getElementById('salesSearch').value.trim().toLowerCase();
+  var rows = DB.documents.filter(function (d) {
+    var matchType = currentSalesTypeFilter === 'all' || d.docType === currentSalesTypeFilter;
+    var contact = DB.contacts.find(function (c) { return c.id === d.contactId; });
+    var contactName = contact ? contact.name : '';
+    var matchSearch = !search || (d.number||'').toLowerCase().indexOf(search) >= 0 || contactName.toLowerCase().indexOf(search) >= 0;
+    return matchType && matchSearch;
+  }).sort(function (a, b) { return (b.issueDate||'').localeCompare(a.issueDate||'') || (b.number||'').localeCompare(a.number||''); });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">ยังไม่มีเอกสาร / ไม่พบรายการที่ค้นหา</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function (d) {
+    var contact = DB.contacts.find(function (c) { return c.id === d.contactId; });
+    var calc = AcctCore.calcDocument(d);
+    var actions = '<button class="ghost sm" onclick="viewDoc(\'' + d.id + '\')">เปิด</button>';
+    if (d.status !== 'void') {
+      actions += ' <button class="ghost sm" onclick="printDoc(\'' + d.id + '\')">พิมพ์</button>';
+      if (d.docType !== 'creditNote') {
+        actions += ' <button class="accent sm" onclick="convertDoc(\'' + d.id + '\')">แปลงเอกสาร</button>';
+      }
+      actions += ' <button class="danger sm" onclick="voidDoc(\'' + d.id + '\')">ยกเลิก</button>';
+    }
+    return '<tr>' +
+      '<td class="text-l">' + (DOC_TYPE_LABEL[d.docType]||d.docType) + '</td>' +
+      '<td class="text-l mono">' + escapeHtml(d.number) + '</td>' +
+      '<td>' + escapeHtml(d.issueDate||'-') + '</td>' +
+      '<td class="text-l">' + escapeHtml(contact ? contact.name : '-') + '</td>' +
+      '<td class="mono">' + fmt(calc.grandTotal) + '</td>' +
+      '<td><span class="badge ' + d.status + '">' + STATUS_LABEL[d.status] + '</span></td>' +
+      '<td>' + actions + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function refreshContactDatalist() {
+  var dl = document.getElementById('contactList');
+  dl.innerHTML = DB.contacts.filter(function(c){ return c.type!=='vendor'; }).map(function (c) {
+    return '<option data-id="' + c.id + '" value="' + escapeHtml(c.name) + '">';
+  }).join('');
+  var vl = document.getElementById('vendorList');
+  vl.innerHTML = DB.contacts.filter(function(c){ return c.type!=='customer'; }).map(function (c) {
+    return '<option data-id="' + c.id + '" value="' + escapeHtml(c.name) + '">';
+  }).join('');
+}
+function refreshProductDatalist() {
+  var dl = document.getElementById('productList');
+  dl.innerHTML = DB.products.map(function (p) {
+    return '<option data-id="' + p.id + '" value="' + escapeHtml(p.name) + '">';
+  }).join('');
+}
+
+/* ---------- Document line items in modal ---------- */
+var docItemsState = []; // { productId, name, qty, unit, price, discount }
+
+function renderDocItems() {
+  var tbody = document.getElementById('docItemsBody');
+  tbody.innerHTML = docItemsState.map(function (it, i) {
+    var amount = AcctCore.round2((Number(it.qty)||0) * (Number(it.price)||0) - (Number(it.discount)||0));
+    return '<tr>' +
+      '<td><input type="text" list="productList" value="' + escapeHtml(it.name) + '" oninput="updateDocItem(' + i + ',\'name\',this.value)" placeholder="พิมพ์ชื่อสินค้า..."></td>' +
+      '<td><input type="number" step="0.01" value="' + it.qty + '" oninput="updateDocItem(' + i + ',\'qty\',this.value)"></td>' +
+      '<td><input type="text" value="' + escapeHtml(it.unit||'') + '" oninput="updateDocItem(' + i + ',\'unit\',this.value)"></td>' +
+      '<td><input type="number" step="0.01" value="' + it.price + '" oninput="updateDocItem(' + i + ',\'price\',this.value)"></td>' +
+      '<td><input type="number" step="0.01" value="' + it.discount + '" oninput="updateDocItem(' + i + ',\'discount\',this.value)"></td>' +
+      '<td class="mono text-right">' + fmt(amount) + '</td>' +
+      '<td><button class="danger sm" type="button" onclick="removeDocItem(' + i + ')">×</button></td>' +
+      '</tr>';
+  }).join('');
+  recalcDocTotals();
+}
+window.updateDocItem = function (i, field, value) {
+  if (field === 'name') {
+    docItemsState[i].name = value;
+    var prod = DB.products.find(function (p) { return p.name === value; });
+    if (prod) {
+      docItemsState[i].productId = prod.id;
+      docItemsState[i].price = prod.price;
+      docItemsState[i].unit = prod.unit;
+      renderDocItems();
+      return;
+    }
+  } else if (field === 'qty' || field === 'price' || field === 'discount') {
+    docItemsState[i][field] = Number(value) || 0;
+  } else {
+    docItemsState[i][field] = value;
+  }
+  recalcDocTotals();
+  // update only amount cell without full re-render loses focus; acceptable trade-off for numeric fields via blur-safe recalculation
+  var row = document.getElementById('docItemsBody').children[i];
+  if (row) {
+    var amount = AcctCore.round2((Number(docItemsState[i].qty)||0) * (Number(docItemsState[i].price)||0) - (Number(docItemsState[i].discount)||0));
+    row.children[5].textContent = fmt(amount);
+  }
+};
+window.removeDocItem = function (i) {
+  docItemsState.splice(i, 1);
+  renderDocItems();
+};
+document.getElementById('btnAddItem').addEventListener('click', function () {
+  docItemsState.push({ productId:'', name:'', qty:1, unit:'หน่วย', price:0, discount:0 });
+  renderDocItems();
+});
+
+function recalcDocTotals() {
+  var discountTotal = Number(document.getElementById('docDiscountTotal').value) || 0;
+  var vatRate = Number(document.getElementById('docVatRate').value) || 0;
+  var whtRate = Number(document.getElementById('docWhtRate').value) || 0;
+  var calc = AcctCore.calcDocument({ items: docItemsState, discountTotal: discountTotal, vatRate: vatRate, whtRate: whtRate });
+  document.getElementById('calcSubtotal').textContent = fmt(calc.subtotal);
+  document.getElementById('calcDiscount').textContent = fmt(calc.discountTotal);
+  document.getElementById('calcAfterDiscount').textContent = fmt(calc.afterDiscount);
+  document.getElementById('calcVat').textContent = fmt(calc.vat);
+  document.getElementById('calcGrand').textContent = fmt(calc.grandTotal);
+  document.getElementById('calcWht').textContent = fmt(calc.wht);
+  document.getElementById('calcNet').textContent = fmt(calc.netReceive);
+}
+['docDiscountTotal','docVatRate','docWhtRate'].forEach(function (id) {
+  document.getElementById(id).addEventListener('input', recalcDocTotals);
+});
+
+document.getElementById('docType').addEventListener('change', function () {
+  var t = this.value;
+  document.getElementById('docCreditNoteRefWrap').style.display = (t === 'creditNote') ? 'block' : 'none';
+  if (t === 'creditNote') {
+    var dl = document.getElementById('docLinkedFrom');
+    var taxDocs = DB.documents.filter(function (d) { return d.docType === 'taxInvoice' && d.status !== 'void'; });
+    dl.innerHTML = '<option value="">- เลือกใบกำกับภาษีอ้างอิง -</option>' +
+      taxDocs.map(function (d) { return '<option value="' + d.id + '">' + escapeHtml(d.number) + '</option>'; }).join('');
+  }
+});
+
+document.getElementById('docContactSearch').addEventListener('input', function () {
+  var name = this.value;
+  var contact = DB.contacts.find(function (c) { return c.name === name; });
+  if (contact) {
+    document.getElementById('docContactId').value = contact.id;
+    document.getElementById('docContactInfo').textContent = 'เลขผู้เสียภาษี: ' + (contact.taxId||'-') + ' | ' + (contact.address||'-');
+  } else {
+    document.getElementById('docContactId').value = '';
+    document.getElementById('docContactInfo').textContent = '';
+  }
+});
+
+function openDocModal(doc, prefillFromConvert) {
+  refreshContactDatalist(); refreshProductDatalist();
+  document.getElementById('docModalTitle').textContent = doc ? 'แก้ไขเอกสาร' : (prefillFromConvert ? 'สร้างเอกสารจากการแปลง' : 'สร้างเอกสารขาย');
+  document.getElementById('docId').value = doc ? doc.id : '';
+  document.getElementById('docType').value = doc ? doc.docType : 'quotation';
+  document.getElementById('docCreditNoteRefWrap').style.display = (doc && doc.docType === 'creditNote') ? 'block' : 'none';
+  if (doc && doc.docType === 'creditNote') {
+    var dl = document.getElementById('docLinkedFrom');
+    var taxDocs = DB.documents.filter(function (d) { return d.docType === 'taxInvoice'; });
+    dl.innerHTML = taxDocs.map(function (d) { return '<option value="' + d.id + '">' + escapeHtml(d.number) + '</option>'; }).join('');
+    dl.value = doc.linkedFrom || '';
+  }
+  document.getElementById('docNumber').value = doc ? doc.number : '';
+  document.getElementById('docIssueDate').value = doc ? doc.issueDate : todayStr();
+  document.getElementById('docDueDate').value = doc ? (doc.dueDate||'') : '';
+  document.getElementById('docReference').value = doc ? (doc.reference||'') : '';
+
+  var contact = doc ? DB.contacts.find(function (c) { return c.id === doc.contactId; }) : null;
+  document.getElementById('docContactId').value = doc ? doc.contactId : '';
+  document.getElementById('docContactSearch').value = contact ? contact.name : '';
+  document.getElementById('docContactInfo').textContent = contact ? ('เลขผู้เสียภาษี: ' + (contact.taxId||'-') + ' | ' + (contact.address||'-')) : '';
+
+  docItemsState = doc ? JSON.parse(JSON.stringify(doc.items)) : [{ productId:'', name:'', qty:1, unit:'หน่วย', price:0, discount:0 }];
+  renderDocItems();
+
+  document.getElementById('docDiscountTotal').value = doc ? doc.discountTotal : 0;
+  document.getElementById('docVatRate').value = doc ? doc.vatRate : DB.settings.vatRate;
+  document.getElementById('docWhtRate').value = doc ? doc.whtRate : 0;
+  document.getElementById('docNote').value = doc ? (doc.note||'') : '';
+  document.getElementById('docStatus').value = doc ? doc.status : 'draft';
+  document.getElementById('docPaidDate').value = doc ? (doc.paidDate||'') : '';
+  document.getElementById('docPaymentMethod').value = doc ? (doc.paymentMethod||'') : '';
+  recalcDocTotals();
+  openModal('modalDoc');
+}
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+document.getElementById('btnNewDoc').addEventListener('click', function () {
+  openDocModal(null);
+  // auto-generate number for default type
+  autoFillDocNumber();
+});
+document.getElementById('docType').addEventListener('change', autoFillDocNumber);
+document.getElementById('docIssueDate').addEventListener('change', autoFillDocNumber);
+function autoFillDocNumber() {
+  if (document.getElementById('docId').value) return; // แก้ไขเอกสารเดิม ไม่รันเลขใหม่
+  var type = document.getElementById('docType').value;
+  var prefix = DB.settings.docNumberFormat.prefixByType[type];
+  var date = document.getElementById('docIssueDate').value || todayStr();
+  var existingNumbers = DB.documents.map(function (d) { return d.number; });
+  var num = AcctCore.generateDocNumber({ prefix: prefix, pattern: DB.settings.docNumberFormat.pattern, date: date, existingNumbers: existingNumbers });
+  document.getElementById('docNumber').value = num;
+}
+
+document.getElementById('btnDocCancel').addEventListener('click', function () { closeModal('modalDoc'); });
+
+function collectDocFromForm() {
+  var discountTotal = Number(document.getElementById('docDiscountTotal').value) || 0;
+  var vatRate = Number(document.getElementById('docVatRate').value) || 0;
+  var whtRate = Number(document.getElementById('docWhtRate').value) || 0;
+  var id = document.getElementById('docId').value;
+  return {
+    id: id || uid('doc'),
+    docType: document.getElementById('docType').value,
+    number: document.getElementById('docNumber').value.trim(),
+    issueDate: document.getElementById('docIssueDate').value,
+    dueDate: document.getElementById('docDueDate').value,
+    contactId: document.getElementById('docContactId').value,
+    reference: document.getElementById('docReference').value.trim(),
+    items: JSON.parse(JSON.stringify(docItemsState)),
+    discountTotal: discountTotal,
+    vatRate: vatRate,
+    whtRate: whtRate,
+    status: document.getElementById('docStatus').value,
+    paidDate: document.getElementById('docPaidDate').value,
+    paymentMethod: document.getElementById('docPaymentMethod').value,
+    note: document.getElementById('docNote').value.trim(),
+    linkedFrom: document.getElementById('docType').value === 'creditNote' ? (document.getElementById('docLinkedFrom').value || '') : ''
+  };
+}
+
+document.getElementById('btnDocSave').addEventListener('click', function () {
+  var doc = collectDocFromForm();
+  if (!doc.number) { toast('กรุณาระบุเลขที่เอกสาร', 'error'); return; }
+  if (!doc.contactId) { toast('กรุณาเลือกลูกค้า', 'error'); return; }
+  if (docItemsState.length === 0) { toast('กรุณาเพิ่มรายการสินค้า/บริการอย่างน้อย 1 รายการ', 'error'); return; }
+  var existIdx = DB.documents.findIndex(function (d) { return d.id === doc.id; });
+  // ตรวจเลขซ้ำ (ยกเว้นตัวเอง)
+  var dup = DB.documents.find(function (d) { return d.number === doc.number && d.id !== doc.id; });
+  if (dup) { toast('เลขที่เอกสารนี้มีอยู่แล้ว กรุณาแก้ไข', 'error'); return; }
+
+  if (existIdx >= 0) DB.documents[existIdx] = doc; else DB.documents.push(doc);
+  saveDB();
+  closeModal('modalDoc');
+  renderSalesTable();
+  toast('บันทึกเอกสารแล้ว', 'success');
+});
+
+window.viewDoc = function (id) {
+  var doc = DB.documents.find(function (d) { return d.id === id; });
+  if (doc) openDocModal(doc);
+};
+
+window.voidDoc = function (id) {
+  askConfirm('ยกเลิกเอกสารนี้? เลขที่เอกสารจะยังคงอยู่ในระบบแต่จะไม่นับรวมในรายงาน', function () {
+    var doc = DB.documents.find(function (d) { return d.id === id; });
+    if (doc) { doc.status = 'void'; saveDB(); renderSalesTable(); toast('ยกเลิกเอกสารแล้ว', 'warn'); }
+  }, 'ยืนยันยกเลิกเอกสาร');
+};
+
+window.convertDoc = function (id) {
+  var src = DB.documents.find(function (d) { return d.id === id; });
+  if (!src) return;
+  var nextTypeMap = { quotation:'invoice', invoice:'taxInvoice', taxInvoice:'creditNote' };
+  var nextType = nextTypeMap[src.docType];
+  if (!nextType) { toast('ไม่สามารถแปลงเอกสารประเภทนี้ได้อีก', 'error'); return; }
+  var newDoc = JSON.parse(JSON.stringify(src));
+  newDoc.id = uid('doc');
+  newDoc.docType = nextType;
+  newDoc.issueDate = todayStr();
+  newDoc.status = 'draft';
+  newDoc.linkedFrom = src.id;
+  newDoc.paidDate = '';
+  var prefix = DB.settings.docNumberFormat.prefixByType[nextType];
+  var existingNumbers = DB.documents.map(function (d) { return d.number; });
+  newDoc.number = AcctCore.generateDocNumber({ prefix: prefix, pattern: DB.settings.docNumberFormat.pattern, date: newDoc.issueDate, existingNumbers: existingNumbers });
+  openDocModal(newDoc, true);
+  toast('คัดลอกรายการจากเอกสาร ' + src.number + ' แล้ว กรุณาตรวจสอบก่อนบันทึก', 'success');
+};
+
+/* ---------- พิมพ์เอกสาร (เฟส 4) ---------- */
+window.printDoc = function (id) {
+  var doc = DB.documents.find(function (d) { return d.id === id; });
+  if (!doc) return;
+  document.getElementById('printSheet').innerHTML = buildPrintHtml(doc);
+  window.print();
+};
+document.getElementById('btnDocPreview').addEventListener('click', function () {
+  var doc = collectDocFromForm();
+  document.getElementById('printSheet').innerHTML = buildPrintHtml(doc);
+  window.print();
+});
+
+var DOC_PRINT_TITLE = {
+  quotation: 'ใบเสนอราคา',
+  invoice: 'ใบแจ้งหนี้',
+  taxInvoice: 'ใบกำกับภาษี / ใบเสร็จรับเงิน',
+  creditNote: 'ใบลดหนี้'
+};
+
+function buildPrintHtml(doc) {
+  var calc = AcctCore.calcDocument(doc);
+  var contact = DB.contacts.find(function (c) { return c.id === doc.contactId; }) || {};
+  var comp = DB.settings.company;
+  var title = DOC_PRINT_TITLE[doc.docType] || 'เอกสาร';
+
+  var itemsRows = doc.items.map(function (it, i) {
+    var amount = AcctCore.round2((Number(it.qty)||0) * (Number(it.price)||0) - (Number(it.discount)||0));
+    return '<tr>' +
+      '<td class="text-center">' + (i+1) + '</td>' +
+      '<td>' + escapeHtml(it.name) + '</td>' +
+      '<td class="text-center">' + fmt(it.qty) + '</td>' +
+      '<td class="text-center">' + escapeHtml(it.unit||'') + '</td>' +
+      '<td class="text-right mono">' + fmt(it.price) + '</td>' +
+      '<td class="text-right mono">' + fmt(it.discount||0) + '</td>' +
+      '<td class="text-right mono">' + fmt(amount) + '</td>' +
+      '</tr>';
+  }).join('');
+  // เติมแถวว่างให้ครบอย่างน้อย 4 แถว เพื่อความสวยงาม
+  var minRows = 4;
+  for (var i = doc.items.length; i < minRows; i++) {
+    itemsRows += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+  }
+
+  var isTaxInvoice = doc.docType === 'taxInvoice';
+  var sigImg = comp.signature ? '<img src="' + comp.signature + '">' : '';
+
+  var html = ''
+    + '<div class="badge-print">' + (isTaxInvoice ? 'ต้นฉบับ' : 'สำเนา') + '</div>'
+    + '<h2 class="doc-title">' + title + (isTaxInvoice ? ' (ต้นฉบับ)' : '') + '</h2>'
+    + (doc.status === 'void' ? '<div class="copy-tag" style="color:red;font-weight:700;">** เอกสารนี้ถูกยกเลิก (VOID) **</div>' : '')
+    + '<div class="doc-head">'
+    +   '<div class="seller">'
+    +     '<div class="company-name">' + escapeHtml(comp.name) + '</div>'
+    +     '<div>' + escapeHtml(comp.address) + '</div>'
+    +     '<div>โทร ' + escapeHtml(comp.phone) + '</div>'
+    +     '<div>เลขประจำตัวผู้เสียภาษีอากร: ' + escapeHtml(comp.taxId) + ' (' + escapeHtml(comp.branch||'สำนักงานใหญ่') + ')</div>'
+    +   '</div>'
+    +   '<div class="meta"><table>'
+    +     '<tr><td>เลขที่เอกสาร</td><td class="mono">: ' + escapeHtml(doc.number) + '</td></tr>'
+    +     '<tr><td>วันที่ออกเอกสาร</td><td>: ' + formatThaiDate(doc.issueDate) + '</td></tr>'
+    +     (doc.dueDate ? '<tr><td>วันครบกำหนด</td><td>: ' + formatThaiDate(doc.dueDate) + '</td></tr>' : '')
+    +     (doc.reference ? '<tr><td>อ้างอิง</td><td>: ' + escapeHtml(doc.reference) + '</td></tr>' : '')
+    +   '</table></div>'
+    + '</div>'
+    + '<div class="doc-buyer">'
+    +   '<b>ลูกค้า:</b> ' + escapeHtml(contact.name||'-') + '<br>'
+    +   (contact.address ? escapeHtml(contact.address) + '<br>' : '')
+    +   'เลขประจำตัวผู้เสียภาษีอากร: ' + escapeHtml(contact.taxId||'-') + ' (' + escapeHtml(contact.branch||'สำนักงานใหญ่') + ')'
+    + '</div>'
+    + '<table class="items"><thead><tr>'
+    +   '<th style="width:5%;">ลำดับ</th><th>รายการ</th><th style="width:8%;">จำนวน</th><th style="width:8%;">หน่วย</th>'
+    +   '<th style="width:13%;">ราคา/หน่วย</th><th style="width:12%;">ส่วนลด</th><th style="width:14%;">จำนวนเงิน</th>'
+    + '</tr></thead><tbody>' + itemsRows + '</tbody></table>'
+    + '<div class="doc-foot-row">'
+    +   '<div class="doc-baht-text"><b>จำนวนเงินตัวอักษร:</b><br>(' + AcctCore.bahtText(calc.grandTotal) + ')</div>'
+    +   '<div class="doc-totals"><table>'
+    +     '<tr><td>มูลค่าก่อนภาษี</td><td class="text-right mono">' + fmt(calc.afterDiscount) + '</td></tr>'
+    +     '<tr><td>ภาษีมูลค่าเพิ่ม ' + (doc.vatRate||0) + '%</td><td class="text-right mono">' + fmt(calc.vat) + '</td></tr>'
+    +     '<tr class="grand"><td>จำนวนเงินรวมทั้งสิ้น</td><td class="text-right mono">' + fmt(calc.grandTotal) + '</td></tr>'
+    +     (calc.wht > 0 ? '<tr><td>หัก ณ ที่จ่าย ' + doc.whtRate + '%</td><td class="text-right mono">' + fmt(calc.wht) + '</td></tr>'
+                        + '<tr class="grand"><td>ยอดรับสุทธิ</td><td class="text-right mono">' + fmt(calc.netReceive) + '</td></tr>' : '')
+    +   '</table></div>'
+    + '</div>'
+    + (doc.note ? '<div class="doc-note"><b>หมายเหตุ:</b> ' + escapeHtml(doc.note) + '</div>' : '')
+    + '<div class="doc-signatures">'
+    +   '<div class="sig-box"><div class="sig-line"></div>ผู้รับสินค้า / ผู้อนุมัติ<br>วันที่ ............................</div>'
+    +   '<div class="sig-box"><div class="sig-line">' + sigImg + '</div>ผู้รับเงิน / ผู้มีอำนาจลงนาม<br>วันที่ ' + formatThaiDate(doc.issueDate) + '</div>'
+    + '</div>';
+  return html;
+}
+
+function formatThaiDate(dateStr) {
+  if (!dateStr) return '-';
+  var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+}
+
+/* =====================================================================
+   เฟส 5: ค่าใช้จ่าย + หัก ณ ที่จ่าย
+   ===================================================================== */
+function renderExpenseTable() {
+  var catSel = document.getElementById('expFilterCategory');
+  if (catSel.options.length <= 1) {
+    var cats = ['ซื้อสินค้า/วัตถุดิบ','ค่าขนส่ง','ค่าเช่า','เงินเดือน','ค่าสาธารณูปโภค','ค่าน้ำมัน','ค่าบริการวิชาชีพ','ค่าโฆษณา','อื่นๆ'];
+    catSel.innerHTML = '<option value="">ทุกหมวด</option>' + cats.map(function (c) { return '<option>' + c + '</option>'; }).join('');
+  }
+  var tbody = document.querySelector('#expTable tbody');
+  var search = document.getElementById('expSearch').value.trim().toLowerCase();
+  var filterCat = document.getElementById('expFilterCategory').value;
+  var rows = DB.expenses.filter(function (e) {
+    var vendor = DB.contacts.find(function (c) { return c.id === e.vendorId; });
+    var vendorName = vendor ? vendor.name : '';
+    var matchSearch = !search || (e.number||'').toLowerCase().indexOf(search) >= 0 ||
+      vendorName.toLowerCase().indexOf(search) >= 0 || (e.description||'').toLowerCase().indexOf(search) >= 0;
+    var matchCat = !filterCat || e.category === filterCat;
+    return matchSearch && matchCat;
+  }).sort(function (a, b) { return (b.date||'').localeCompare(a.date||''); });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">ยังไม่มีข้อมูล / ไม่พบรายการที่ค้นหา</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function (e) {
+    var vendor = DB.contacts.find(function (c) { return c.id === e.vendorId; });
+    return '<tr>' +
+      '<td class="text-l mono">' + escapeHtml(e.number||'-') + '</td>' +
+      '<td>' + escapeHtml(e.date||'-') + '</td>' +
+      '<td class="text-l">' + escapeHtml(vendor ? vendor.name : '-') + '</td>' +
+      '<td class="text-l">' + escapeHtml(e.category||'-') + '</td>' +
+      '<td class="mono">' + fmt(e.amount) + '</td>' +
+      '<td class="mono">' + fmt(e.vatAmount) + '</td>' +
+      '<td class="mono">' + fmt(e.whtAmount) + '</td>' +
+      '<td><span class="badge ' + (e.status==='paid'?'paid':'awaiting') + '">' + (e.status==='paid'?'จ่ายแล้ว':'ยังไม่จ่าย') + '</span></td>' +
+      '<td><button class="ghost sm" onclick="editExpense(\'' + e.id + '\')">แก้ไข</button> ' +
+      '<button class="danger sm" onclick="deleteExpense(\'' + e.id + '\')">ลบ</button></td>' +
+      '</tr>';
+  }).join('');
+}
+document.getElementById('expSearch').addEventListener('input', renderExpenseTable);
+document.getElementById('expFilterCategory').addEventListener('change', renderExpenseTable);
+
+function recalcExpenseTotals() {
+  var amount = Number(document.getElementById('expAmount').value) || 0;
+  var hasTax = document.getElementById('expHasTaxInvoice').value === 'true';
+  var vatRate = hasTax ? (Number(document.getElementById('expVatRate').value) || 0) : 0;
+  var whtRate = Number(document.getElementById('expWhtRate').value) || 0;
+  var calc = AcctCore.calcDocument({ items: [{ qty:1, price: amount, discount:0 }], discountTotal:0, vatRate: vatRate, whtRate: whtRate });
+  document.getElementById('expCalcBase').textContent = fmt(calc.afterDiscount);
+  document.getElementById('expCalcVat').textContent = fmt(calc.vat);
+  document.getElementById('expCalcTotal').textContent = fmt(calc.grandTotal);
+  document.getElementById('expCalcWht').textContent = fmt(calc.wht);
+  document.getElementById('expCalcNet').textContent = fmt(calc.netReceive);
+  return calc;
+}
+['expAmount','expHasTaxInvoice','expVatRate','expWhtRate'].forEach(function (id) {
+  document.getElementById(id).addEventListener('input', recalcExpenseTotals);
+  document.getElementById(id).addEventListener('change', recalcExpenseTotals);
+});
+
+document.getElementById('expVendorSearch').addEventListener('input', function () {
+  var vendor = DB.contacts.find(function (c) { return c.name === this.value; });
+  document.getElementById('expVendorId').value = vendor ? vendor.id : '';
+}.bind(document.getElementById('expVendorSearch')));
+
+document.getElementById('btnNewExpense').addEventListener('click', function () { openExpenseModal(null); });
+function openExpenseModal(exp) {
+  refreshContactDatalist();
+  document.getElementById('expModalTitle').textContent = exp ? 'แก้ไขค่าใช้จ่าย' : 'บันทึกค่าใช้จ่าย';
+  document.getElementById('expId').value = exp ? exp.id : '';
+  var prefix = DB.settings.docNumberFormat.prefixByType.expense || 'EX';
+  var existingNumbers = DB.expenses.map(function (e) { return e.number; });
+  document.getElementById('expNumber').value = exp ? exp.number : AcctCore.generateDocNumber({ prefix: prefix, pattern: DB.settings.docNumberFormat.pattern, date: todayStr(), existingNumbers: existingNumbers });
+  document.getElementById('expDate').value = exp ? exp.date : todayStr();
+  var vendor = exp ? DB.contacts.find(function (c) { return c.id === exp.vendorId; }) : null;
+  document.getElementById('expVendorId').value = exp ? exp.vendorId : '';
+  document.getElementById('expVendorSearch').value = vendor ? vendor.name : '';
+  document.getElementById('expCategory').value = exp ? exp.category : 'ซื้อสินค้า/วัตถุดิบ';
+  document.getElementById('expPaymentMethod').value = exp ? (exp.paymentMethod||'') : '';
+  document.getElementById('expDescription').value = exp ? (exp.description||'') : '';
+  document.getElementById('expAmount').value = exp ? exp.amount : 0;
+  document.getElementById('expHasTaxInvoice').value = exp ? String(!!exp.hasTaxInvoice) : 'true';
+  document.getElementById('expVendorTaxInvoiceNo').value = exp ? (exp.vendorTaxInvoiceNo||'') : '';
+  document.getElementById('expVatRate').value = exp ? (exp.amount? AcctCore.round2((exp.vatAmount/exp.amount)*100) : DB.settings.vatRate) : DB.settings.vatRate;
+  document.getElementById('expWhtRate').value = exp ? exp.whtRate : 0;
+  document.getElementById('expStatus').value = exp ? exp.status : 'unpaid';
+  recalcExpenseTotals();
+  openModal('modalExpense');
+}
+window.editExpense = function (id) {
+  var exp = DB.expenses.find(function (e) { return e.id === id; });
+  if (exp) openExpenseModal(exp);
+};
+window.deleteExpense = function (id) {
+  askConfirm('ต้องการลบรายการค่าใช้จ่ายนี้หรือไม่?', function () {
+    DB.expenses = DB.expenses.filter(function (e) { return e.id !== id; });
+    saveDB(); renderExpenseTable();
+    toast('ลบแล้ว', 'success');
+  });
+};
+document.getElementById('btnExpCancel').addEventListener('click', function () { closeModal('modalExpense'); });
+document.getElementById('btnExpSave').addEventListener('click', function () {
+  var amount = Number(document.getElementById('expAmount').value) || 0;
+  var vendorId = document.getElementById('expVendorId').value;
+  if (!vendorId) { toast('กรุณาเลือกผู้ขาย/ผู้รับเงิน', 'error'); return; }
+  var number = document.getElementById('expNumber').value.trim();
+  if (!number) { toast('กรุณาระบุเลขที่เอกสาร', 'error'); return; }
+  var id = document.getElementById('expId').value;
+  var dup = DB.expenses.find(function (e) { return e.number === number && e.id !== id; });
+  if (dup) { toast('เลขที่เอกสารนี้มีอยู่แล้ว', 'error'); return; }
+
+  var calc = recalcExpenseTotals();
+  var obj = {
+    id: id || uid('ex'),
+    number: number,
+    date: document.getElementById('expDate').value,
+    vendorId: vendorId,
+    category: document.getElementById('expCategory').value,
+    description: document.getElementById('expDescription').value.trim(),
+    amount: amount,
+    vatAmount: calc.vat,
+    hasTaxInvoice: document.getElementById('expHasTaxInvoice').value === 'true',
+    vendorTaxInvoiceNo: document.getElementById('expVendorTaxInvoiceNo').value.trim(),
+    whtRate: Number(document.getElementById('expWhtRate').value) || 0,
+    whtAmount: calc.wht,
+    paymentMethod: document.getElementById('expPaymentMethod').value,
+    status: document.getElementById('expStatus').value
+  };
+  var idx = DB.expenses.findIndex(function (e) { return e.id === id; });
+  if (idx >= 0) DB.expenses[idx] = obj; else DB.expenses.push(obj);
+  saveDB();
+  closeModal('modalExpense');
+  renderExpenseTable();
+  toast('บันทึกแล้ว', 'success');
+});
+
+/* =====================================================================
+   เฟส 6: รายงาน + Export CSV
+   ===================================================================== */
+var currentReportType = 'salesTax';
+document.getElementById('reportTabs').addEventListener('click', function (e) {
+  var btn = e.target.closest('button[data-report]');
+  if (!btn) return;
+  currentReportType = btn.dataset.report;
+  document.querySelectorAll('#reportTabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+  renderReport();
+});
+document.getElementById('btnReportRefresh').addEventListener('click', renderReport);
+
+function initReportDateRange() {
+  var now = new Date();
+  var ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('reportFrom').value = ym;
+  document.getElementById('reportTo').value = ym;
+}
+
+function inRange(dateStr, fromYm, toYm) {
+  if (!dateStr) return false;
+  var ym = dateStr.slice(0, 7);
+  return ym >= fromYm && ym <= toYm;
+}
+
+function csvEscape(v) {
+  var s = String(v == null ? '' : v);
+  if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function exportCsv(filename, headers, rows) {
+  var lines = [headers.map(csvEscape).join(',')];
+  rows.forEach(function (r) { lines.push(r.map(csvEscape).join(',')); });
+  var csvContent = lines.join('\r\n');
+  var blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Export CSV แล้ว: ' + filename, 'success');
+}
+
+function renderReport() {
+  var fromYm = document.getElementById('reportFrom').value;
+  var toYm = document.getElementById('reportTo').value;
+  if (!fromYm || !toYm) { initReportDateRange(); fromYm = document.getElementById('reportFrom').value; toYm = document.getElementById('reportTo').value; }
+  var body = document.getElementById('reportBody');
+
+  if (currentReportType === 'salesTax') body.innerHTML = renderSalesTaxReport(fromYm, toYm);
+  else if (currentReportType === 'purchaseTax') body.innerHTML = renderPurchaseTaxReport(fromYm, toYm);
+  else if (currentReportType === 'vat30') body.innerHTML = renderVat30Report(fromYm, toYm);
+  else if (currentReportType === 'wht') body.innerHTML = renderWhtReport(fromYm, toYm);
+  else if (currentReportType === 'pnl') body.innerHTML = renderPnlReport(fromYm, toYm);
+}
+
+function getSalesTaxRows(fromYm, toYm) {
+  // ตามข้อ 8: taxInvoice + creditNote (ติดลบ), ไม่รวม void
+  return DB.documents.filter(function (d) {
+    return (d.docType === 'taxInvoice' || d.docType === 'creditNote') && d.status !== 'void' && inRange(d.issueDate, fromYm, toYm);
+  }).sort(function (a, b) { return (a.issueDate||'').localeCompare(b.issueDate||''); });
+}
+
+function renderSalesTaxReport(fromYm, toYm) {
+  var rows = getSalesTaxRows(fromYm, toYm);
+  var sign, totalBase = 0, totalVat = 0;
+  var trs = rows.map(function (d, i) {
+    var contact = DB.contacts.find(function (c) { return c.id === d.contactId; }) || {};
+    var calc = AcctCore.calcDocument(d);
+    sign = d.docType === 'creditNote' ? -1 : 1;
+    var base = sign * calc.afterDiscount, vat = sign * calc.vat;
+    totalBase += base; totalVat += vat;
+    return '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(d.issueDate) + '</td><td class="text-l mono">' + escapeHtml(d.number) +
+      (d.docType==='creditNote' ? ' (ลดหนี้)' : '') + '</td><td class="text-l">' + escapeHtml(contact.name||'-') + '</td>' +
+      '<td class="mono">' + escapeHtml(contact.taxId||'-') + '</td><td>' + escapeHtml(contact.branch||'-') + '</td>' +
+      '<td class="mono">' + fmt(base) + '</td><td class="mono">' + fmt(vat) + '</td></tr>';
+  }).join('');
+  window._lastSalesTaxData = { rows: rows, totalBase: totalBase, totalVat: totalVat };
+  return '<div class="toolbar"><div class="spacer"></div><button class="accent sm" onclick="exportSalesTaxCsv()">Export CSV</button></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>ลำดับ</th><th>วันที่</th><th class="text-l">เลขที่ใบกำกับ</th><th class="text-l">ชื่อผู้ซื้อ</th>' +
+    '<th class="text-l">เลขผู้เสียภาษี</th><th class="text-l">สาขา</th><th>มูลค่าก่อน VAT</th><th>VAT</th></tr></thead><tbody>' +
+    (trs || '<tr><td colspan="8" class="empty-state">ไม่มีข้อมูลในช่วงที่เลือก</td></tr>') +
+    '</tbody><tfoot><tr style="font-weight:700;background:#f5f7fa;"><td colspan="6" class="text-l">รวมทั้งสิ้น</td><td class="mono">' + fmt(totalBase) + '</td><td class="mono">' + fmt(totalVat) + '</td></tr></tfoot></table></div>';
+}
+window.exportSalesTaxCsv = function () {
+  var d = window._lastSalesTaxData;
+  var headers = ['ลำดับ','วันที่','เลขที่ใบกำกับ','ชื่อผู้ซื้อ','เลขผู้เสียภาษี','สาขา','มูลค่าก่อนVAT','VAT'];
+  var rows = d.rows.map(function (doc, i) {
+    var contact = DB.contacts.find(function (c) { return c.id === doc.contactId; }) || {};
+    var calc = AcctCore.calcDocument(doc);
+    var sign = doc.docType === 'creditNote' ? -1 : 1;
+    return [i+1, doc.issueDate, doc.number, contact.name||'-', contact.taxId||'-', contact.branch||'-', (sign*calc.afterDiscount).toFixed(2), (sign*calc.vat).toFixed(2)];
+  });
+  rows.push(['', '', '', '', '', 'รวม', d.totalBase.toFixed(2), d.totalVat.toFixed(2)]);
+  exportCsv('รายงานภาษีขาย.csv', headers, rows);
+};
+
+function getPurchaseTaxRows(fromYm, toYm) {
+  return DB.expenses.filter(function (e) {
+    return e.hasTaxInvoice === true && inRange(e.date, fromYm, toYm);
+  }).sort(function (a, b) { return (a.date||'').localeCompare(b.date||''); });
+}
+function renderPurchaseTaxReport(fromYm, toYm) {
+  var rows = getPurchaseTaxRows(fromYm, toYm);
+  var totalBase = 0, totalVat = 0;
+  var trs = rows.map(function (e, i) {
+    var vendor = DB.contacts.find(function (c) { return c.id === e.vendorId; }) || {};
+    totalBase += e.amount; totalVat += e.vatAmount;
+    return '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(e.date) + '</td><td class="text-l mono">' + escapeHtml(e.vendorTaxInvoiceNo||e.number) + '</td>' +
+      '<td class="text-l">' + escapeHtml(vendor.name||'-') + '</td><td class="mono">' + escapeHtml(vendor.taxId||'-') + '</td><td>' + escapeHtml(vendor.branch||'-') + '</td>' +
+      '<td class="mono">' + fmt(e.amount) + '</td><td class="mono">' + fmt(e.vatAmount) + '</td></tr>';
+  }).join('');
+  window._lastPurchaseTaxData = { rows: rows, totalBase: totalBase, totalVat: totalVat };
+  return '<div class="toolbar"><div class="spacer"></div><button class="accent sm" onclick="exportPurchaseTaxCsv()">Export CSV</button></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>ลำดับ</th><th>วันที่</th><th class="text-l">เลขที่ใบกำกับ</th><th class="text-l">ชื่อผู้ขาย</th>' +
+    '<th class="text-l">เลขผู้เสียภาษี</th><th class="text-l">สาขา</th><th>มูลค่าก่อน VAT</th><th>VAT</th></tr></thead><tbody>' +
+    (trs || '<tr><td colspan="8" class="empty-state">ไม่มีข้อมูลในช่วงที่เลือก</td></tr>') +
+    '</tbody><tfoot><tr style="font-weight:700;background:#f5f7fa;"><td colspan="6" class="text-l">รวมทั้งสิ้น</td><td class="mono">' + fmt(totalBase) + '</td><td class="mono">' + fmt(totalVat) + '</td></tr></tfoot></table></div>';
+}
+window.exportPurchaseTaxCsv = function () {
+  var d = window._lastPurchaseTaxData;
+  var headers = ['ลำดับ','วันที่','เลขที่ใบกำกับ','ชื่อผู้ขาย','เลขผู้เสียภาษี','สาขา','มูลค่าก่อนVAT','VAT'];
+  var rows = d.rows.map(function (e, i) {
+    var vendor = DB.contacts.find(function (c) { return c.id === e.vendorId; }) || {};
+    return [i+1, e.date, e.vendorTaxInvoiceNo||e.number, vendor.name||'-', vendor.taxId||'-', vendor.branch||'-', e.amount.toFixed(2), e.vatAmount.toFixed(2)];
+  });
+  rows.push(['', '', '', '', '', 'รวม', d.totalBase.toFixed(2), d.totalVat.toFixed(2)]);
+  exportCsv('รายงานภาษีซื้อ.csv', headers, rows);
+};
+
+function renderVat30Report(fromYm, toYm) {
+  var salesRows = getSalesTaxRows(fromYm, toYm);
+  var purchaseRows = getPurchaseTaxRows(fromYm, toYm);
+  var salesVat = salesRows.reduce(function (s, d) {
+    var calc = AcctCore.calcDocument(d);
+    var sign = d.docType === 'creditNote' ? -1 : 1;
+    return s + sign * calc.vat;
+  }, 0);
+  var purchaseVat = purchaseRows.reduce(function (s, e) { return s + e.vatAmount; }, 0);
+  var net = AcctCore.round2(salesVat - purchaseVat);
+  window._lastVat30 = { salesVat: salesVat, purchaseVat: purchaseVat, net: net, fromYm: fromYm, toYm: toYm };
+  return '<div class="toolbar"><div class="spacer"></div><button class="accent sm" onclick="exportVat30Csv()">Export CSV</button></div>' +
+    '<div class="grid cols-3">' +
+    '<div class="kpi"><div class="label">ภาษีขาย (ช่วง ' + fromYm + ' ถึง ' + toYm + ')</div><div class="value">' + fmt(salesVat) + '</div></div>' +
+    '<div class="kpi alt"><div class="label">ภาษีซื้อ</div><div class="value">' + fmt(purchaseVat) + '</div></div>' +
+    '<div class="kpi ' + (net >= 0 ? 'warn' : 'grey') + '"><div class="label">' + (net >= 0 ? 'ภาษีต้องชำระ' : 'ภาษีขอคืน') + '</div><div class="value">' + fmt(Math.abs(net)) + '</div></div>' +
+    '</div><p class="hint" style="margin-top:12px;">สูตร: ภาษีขาย − ภาษีซื้อ = ' + fmt(net) + ' บาท (' + (net >= 0 ? 'ต้องนำส่งกรมสรรพากร' : 'ขอคืนภาษี') + ')</p>';
+}
+window.exportVat30Csv = function () {
+  var d = window._lastVat30;
+  var headers = ['รายการ','จำนวนเงิน'];
+  var rows = [
+    ['ช่วงเดือน', d.fromYm + ' ถึง ' + d.toYm],
+    ['ภาษีขาย', d.salesVat.toFixed(2)],
+    ['ภาษีซื้อ', d.purchaseVat.toFixed(2)],
+    [d.net >= 0 ? 'ภาษีต้องชำระ' : 'ภาษีขอคืน', Math.abs(d.net).toFixed(2)]
+  ];
+  exportCsv('สรุปภพ30.csv', headers, rows);
+};
+
+function renderWhtReport(fromYm, toYm) {
+  var rows = DB.expenses.filter(function (e) { return (e.whtAmount||0) > 0 && inRange(e.date, fromYm, toYm); })
+    .sort(function (a, b) { return (a.date||'').localeCompare(b.date||''); });
+  var totalBase = 0, totalWht = 0;
+  var trs = rows.map(function (e, i) {
+    var vendor = DB.contacts.find(function (c) { return c.id === e.vendorId; }) || {};
+    totalBase += e.amount; totalWht += e.whtAmount;
+    return '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(e.date) + '</td><td class="text-l">' + escapeHtml(vendor.name||'-') + '</td>' +
+      '<td class="mono">' + escapeHtml(vendor.taxId||'-') + '</td><td class="text-l">' + escapeHtml(e.category||'-') + '</td>' +
+      '<td>' + e.whtRate + '%</td><td class="mono">' + fmt(e.amount) + '</td><td class="mono">' + fmt(e.whtAmount) + '</td></tr>';
+  }).join('');
+  window._lastWht = { rows: rows, totalBase: totalBase, totalWht: totalWht };
+  return '<div class="toolbar"><div class="spacer"></div><button class="accent sm" onclick="exportWhtCsv()">Export CSV</button></div>' +
+    '<div class="table-wrap"><table><thead><tr><th>ลำดับ</th><th>วันที่</th><th class="text-l">ผู้รับเงิน</th><th class="text-l">เลขผู้เสียภาษี</th>' +
+    '<th class="text-l">หมวด</th><th>อัตรา</th><th>ฐานภาษี</th><th>ภาษีหัก ณ ที่จ่าย</th></tr></thead><tbody>' +
+    (trs || '<tr><td colspan="8" class="empty-state">ไม่มีข้อมูลในช่วงที่เลือก</td></tr>') +
+    '</tbody><tfoot><tr style="font-weight:700;background:#f5f7fa;"><td colspan="6" class="text-l">รวมทั้งสิ้น</td><td class="mono">' + fmt(totalBase) + '</td><td class="mono">' + fmt(totalWht) + '</td></tr></tfoot></table></div>' +
+    '<p class="hint">ใช้ประกอบการยื่น ภ.ง.ด.3 (บุคคลธรรมดา) / ภ.ง.ด.53 (นิติบุคคล)</p>';
+}
+window.exportWhtCsv = function () {
+  var d = window._lastWht;
+  var headers = ['ลำดับ','วันที่','ผู้รับเงิน','เลขผู้เสียภาษี','หมวด','อัตรา(%)','ฐานภาษี','ภาษีหักณที่จ่าย'];
+  var rows = d.rows.map(function (e, i) {
+    var vendor = DB.contacts.find(function (c) { return c.id === e.vendorId; }) || {};
+    return [i+1, e.date, vendor.name||'-', vendor.taxId||'-', e.category||'-', e.whtRate, e.amount.toFixed(2), e.whtAmount.toFixed(2)];
+  });
+  rows.push(['', '', '', '', '', 'รวม', d.totalBase.toFixed(2), d.totalWht.toFixed(2)]);
+  exportCsv('รายงานหักณที่จ่าย.csv', headers, rows);
+};
+
+function renderPnlReport(fromYm, toYm) {
+  var salesDocs = DB.documents.filter(function (d) {
+    return (d.docType === 'taxInvoice' || d.docType === 'creditNote') && d.status !== 'void' && inRange(d.issueDate, fromYm, toYm);
+  });
+  var revenue = salesDocs.reduce(function (s, d) {
+    var calc = AcctCore.calcDocument(d);
+    var sign = d.docType === 'creditNote' ? -1 : 1;
+    return s + sign * calc.afterDiscount;
+  }, 0);
+  var expenseRows = DB.expenses.filter(function (e) { return inRange(e.date, fromYm, toYm); });
+  var byCategory = {};
+  expenseRows.forEach(function (e) { byCategory[e.category] = (byCategory[e.category]||0) + e.amount; });
+  var totalExpense = expenseRows.reduce(function (s, e) { return s + e.amount; }, 0);
+  var profit = AcctCore.round2(revenue - totalExpense);
+  window._lastPnl = { revenue: revenue, byCategory: byCategory, totalExpense: totalExpense, profit: profit, fromYm: fromYm, toYm: toYm };
+
+  var catRows = Object.keys(byCategory).map(function (cat) {
+    return '<tr><td class="text-l">' + escapeHtml(cat) + '</td><td class="mono">' + fmt(byCategory[cat]) + '</td></tr>';
+  }).join('');
+
+  return '<div class="toolbar"><div class="spacer"></div><button class="accent sm" onclick="exportPnlCsv()">Export CSV</button></div>' +
+    '<div class="grid cols-3">' +
+    '<div class="kpi"><div class="label">รายได้ (ยอดขายก่อน VAT)</div><div class="value">' + fmt(revenue) + '</div></div>' +
+    '<div class="kpi alt"><div class="label">ค่าใช้จ่ายรวม</div><div class="value">' + fmt(totalExpense) + '</div></div>' +
+    '<div class="kpi ' + (profit >= 0 ? 'warn' : 'grey') + '"><div class="label">' + (profit>=0?'กำไรสุทธิ':'ขาดทุนสุทธิ') + '</div><div class="value">' + fmt(Math.abs(profit)) + '</div></div>' +
+    '</div>' +
+    '<h3 style="margin-top:16px;">ค่าใช้จ่ายแยกตามหมวด</h3>' +
+    '<div class="table-wrap"><table><thead><tr><th class="text-l">หมวด</th><th>จำนวนเงิน</th></tr></thead><tbody>' +
+    (catRows || '<tr><td colspan="2" class="empty-state">ไม่มีข้อมูล</td></tr>') + '</tbody></table></div>';
+}
+window.exportPnlCsv = function () {
+  var d = window._lastPnl;
+  var headers = ['รายการ','จำนวนเงิน'];
+  var rows = [['รายได้ (ยอดขายก่อน VAT)', d.revenue.toFixed(2)]];
+  Object.keys(d.byCategory).forEach(function (cat) { rows.push(['ค่าใช้จ่าย: ' + cat, d.byCategory[cat].toFixed(2)]); });
+  rows.push(['ค่าใช้จ่ายรวม', d.totalExpense.toFixed(2)]);
+  rows.push([d.profit >= 0 ? 'กำไรสุทธิ' : 'ขาดทุนสุทธิ', Math.abs(d.profit).toFixed(2)]);
+  exportCsv('งบกำไรขาดทุน.csv', headers, rows);
+};
+
+/* =====================================================================
+   แดชบอร์ด
+   ===================================================================== */
+function renderDashboard() {
+  var now = new Date();
+  var thisYm = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+  var salesThisMonth = DB.documents.filter(function (d) {
+    return (d.docType === 'taxInvoice' || d.docType === 'creditNote') && d.status !== 'void' && (d.issueDate||'').slice(0,7) === thisYm;
+  }).reduce(function (s, d) {
+    var calc = AcctCore.calcDocument(d);
+    var sign = d.docType === 'creditNote' ? -1 : 1;
+    return s + sign * calc.afterDiscount;
+  }, 0);
+
+  var expenseThisMonth = DB.expenses.filter(function (e) { return (e.date||'').slice(0,7) === thisYm; })
+    .reduce(function (s, e) { return s + e.amount; }, 0);
+
+  var arDocs = DB.documents.filter(function (d) {
+    return (d.docType === 'invoice' || d.docType === 'taxInvoice') && (d.status === 'awaiting' || d.status === 'draft');
+  });
+  var arTotal = arDocs.reduce(function (s, d) { return s + AcctCore.calcDocument(d).grandTotal; }, 0);
+
+  var kpiHtml =
+    '<div class="kpi"><div class="label">ยอดขายเดือนนี้ (ก่อน VAT)</div><div class="value">' + fmt(salesThisMonth) + '</div></div>' +
+    '<div class="kpi alt"><div class="label">ค่าใช้จ่ายเดือนนี้</div><div class="value">' + fmt(expenseThisMonth) + '</div></div>' +
+    '<div class="kpi warn"><div class="label">ลูกหนี้ค้างชำระ</div><div class="value">' + fmt(arTotal) + '</div></div>' +
+    '<div class="kpi grey"><div class="label">จำนวนเอกสารทั้งหมด</div><div class="value">' + fmtInt(DB.documents.length) + '</div></div>';
+  document.getElementById('dashKpis').innerHTML = kpiHtml;
+
+  // AR table
+  var arTbody = document.querySelector('#dashAR tbody');
+  if (arDocs.length === 0) {
+    arTbody.innerHTML = '<tr><td colspan="5" class="empty-state">ไม่มีลูกหนี้ค้างชำระ</td></tr>';
+  } else {
+    arTbody.innerHTML = arDocs.sort(function(a,b){return (a.dueDate||'').localeCompare(b.dueDate||'');}).map(function (d) {
+      var contact = DB.contacts.find(function (c) { return c.id === d.contactId; }) || {};
+      var calc = AcctCore.calcDocument(d);
+      return '<tr><td class="text-l mono">' + escapeHtml(d.number) + '</td><td class="text-l">' + escapeHtml(contact.name||'-') + '</td>' +
+        '<td>' + escapeHtml(d.dueDate||'-') + '</td><td class="mono">' + fmt(calc.grandTotal) + '</td>' +
+        '<td><button class="ghost sm" onclick="viewDoc(\'' + d.id + '\')">เปิด</button></td></tr>';
+    }).join('');
+  }
+
+  // Chart 6 months
+  var months = [];
+  for (var i = 5; i >= 0; i--) {
+    var dt = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ ym: dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0'), label: (dt.getMonth()+1) + '/' + String(dt.getFullYear()+543).slice(2) });
+  }
+  var monthData = months.map(function (m) {
+    var sales = DB.documents.filter(function (d) {
+      return (d.docType === 'taxInvoice' || d.docType === 'creditNote') && d.status !== 'void' && (d.issueDate||'').slice(0,7) === m.ym;
+    }).reduce(function (s, d) {
+      var calc = AcctCore.calcDocument(d);
+      var sign = d.docType === 'creditNote' ? -1 : 1;
+      return s + sign * calc.afterDiscount;
+    }, 0);
+    var exp = DB.expenses.filter(function (e) { return (e.date||'').slice(0,7) === m.ym; }).reduce(function (s, e) { return s + e.amount; }, 0);
+    return { label: m.label, sales: sales, exp: exp };
+  });
+  var maxVal = Math.max(1, Math.max.apply(null, monthData.map(function (m) { return Math.max(m.sales, m.exp); })));
+  var chartHtml = '<div class="chart-bars">' + monthData.map(function (m) {
+    var salesH = Math.max(2, Math.round((m.sales / maxVal) * 150));
+    var expH = Math.max(2, Math.round((m.exp / maxVal) * 150));
+    return '<div class="bar-col"><div class="bar-group">' +
+      '<div style="display:flex;flex-direction:column;align-items:center;"><div class="bar-val">' + fmtInt(m.sales) + '</div><div class="bar" style="height:' + salesH + 'px;"></div></div>' +
+      '<div style="display:flex;flex-direction:column;align-items:center;"><div class="bar-val">' + fmtInt(m.exp) + '</div><div class="bar expense" style="height:' + expH + 'px;"></div></div>' +
+      '</div><div class="bar-label">' + m.label + '</div></div>';
+  }).join('') + '</div>';
+  document.getElementById('dashChart').innerHTML = chartHtml;
+}
+
+/* =====================================================================
+   Init
+   ===================================================================== */
+function init() {
+  loadDB();
+  initReportDateRange();
+  showPage('dashboard');
+}
+init();
+</script>
+</body>
+</html>
