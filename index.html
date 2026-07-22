@@ -519,9 +519,14 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
       <datalist id="productList"></datalist>
     </fieldset>
 
-    <div class="grid cols-3">
-      <div class="form-row"><label>ส่วนลดท้ายบิล (บาท)</label><input type="number" id="docDiscountTotal" value="0" step="0.01"></div>
-      <div class="form-row"><label>อัตรา VAT (%)</label><input type="number" id="docVatRate" step="0.01"></div>
+    <div class="grid cols-2">
+      <div class="form-row"><label>อัตรา VAT (%)</label>
+        <select id="docVatRate">
+          <option value="none">ไม่มี VAT</option>
+          <option value="0">VAT 0%</option>
+          <option value="7">VAT 7%</option>
+        </select>
+      </div>
       <div class="form-row"><label>หัก ณ ที่จ่าย</label>
         <select id="docWhtRate">
           <option value="0">ไม่มี (0%)</option>
@@ -537,9 +542,10 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
     <div class="totals-box">
       <table>
         <tr><td class="text-l">มูลค่าสินค้า/บริการ</td><td class="text-right mono" id="calcSubtotal">0.00</td></tr>
-        <tr><td class="text-l">ส่วนลดท้ายบิล</td><td class="text-right mono" id="calcDiscount">0.00</td></tr>
+        <tr><td class="text-l">ส่วนลดท้ายบิล (บาท)</td>
+            <td class="text-right"><input type="number" id="docDiscountTotal" value="0" step="0.01" style="width:110px;text-align:right;"></td></tr>
         <tr><td class="text-l">มูลค่าหลังหักส่วนลด</td><td class="text-right mono" id="calcAfterDiscount">0.00</td></tr>
-        <tr><td class="text-l">ภาษีมูลค่าเพิ่ม (VAT)</td><td class="text-right mono" id="calcVat">0.00</td></tr>
+        <tr id="rowVat"><td class="text-l">ภาษีมูลค่าเพิ่ม (VAT)</td><td class="text-right mono" id="calcVat">0.00</td></tr>
         <tr class="grand"><td class="text-l">ยอดรวมสุทธิ</td><td class="text-right mono" id="calcGrand">0.00</td></tr>
         <tr><td class="text-l">หัก ณ ที่จ่าย</td><td class="text-right mono" id="calcWht">0.00</td></tr>
         <tr class="grand"><td class="text-l">ยอดรับสุทธิ</td><td class="text-right mono" id="calcNet">0.00</td></tr>
@@ -1711,13 +1717,14 @@ document.getElementById('btnAddItem').addEventListener('click', function () {
 
 function recalcDocTotals() {
   var discountTotal = Number(document.getElementById('docDiscountTotal').value) || 0;
-  var vatRate = Number(document.getElementById('docVatRate').value) || 0;
+  var vatMode = document.getElementById('docVatRate').value;
+  var vatRate = vatMode === 'none' ? 0 : Number(vatMode) || 0;
   var whtRate = Number(document.getElementById('docWhtRate').value) || 0;
   var calc = AcctCore.calcDocument({ items: docItemsState, discountTotal: discountTotal, vatRate: vatRate, whtRate: whtRate });
   document.getElementById('calcSubtotal').textContent = fmt(calc.subtotal);
-  document.getElementById('calcDiscount').textContent = fmt(calc.discountTotal);
   document.getElementById('calcAfterDiscount').textContent = fmt(calc.afterDiscount);
   document.getElementById('calcVat').textContent = fmt(calc.vat);
+  document.getElementById('rowVat').style.display = (vatMode !== 'none') ? '' : 'none';
   document.getElementById('calcGrand').textContent = fmt(calc.grandTotal);
   document.getElementById('calcWht').textContent = fmt(calc.wht);
   document.getElementById('calcNet').textContent = fmt(calc.netReceive);
@@ -1749,6 +1756,50 @@ document.getElementById('docContactSearch').addEventListener('input', function (
   }
 });
 
+function setDocVatRateSelect(doc) {
+  var sel = document.getElementById('docVatRate');
+  if (!doc) {
+    // เอกสารใหม่: default ตาม DB.settings.vatRate (ปกติ 7) ถ้า >0 เลือกอัตรานั้น ไม่ default เป็น "ไม่มี VAT"
+    var defRate = DB.settings.vatRate;
+    if (defRate > 0) {
+      if (!sel.querySelector('option[value="' + defRate + '"]')) {
+        var opt0 = document.createElement('option');
+        opt0.value = String(defRate);
+        opt0.textContent = 'VAT ' + defRate + '%';
+        sel.appendChild(opt0);
+      }
+      sel.value = String(defRate);
+    } else {
+      sel.value = 'none';
+    }
+    return;
+  }
+  if (doc.vatMode !== undefined && doc.vatMode !== null && doc.vatMode !== '') {
+    // เอกสารมี vatMode อยู่แล้ว (สร้าง/แก้หลังอัปเดตนี้)
+    if (!sel.querySelector('option[value="' + doc.vatMode + '"]')) {
+      var opt1 = document.createElement('option');
+      opt1.value = doc.vatMode;
+      opt1.textContent = doc.vatMode === 'none' ? 'ไม่มี VAT' : ('VAT ' + doc.vatMode + '%');
+      sel.appendChild(opt1);
+    }
+    sel.value = doc.vatMode;
+    return;
+  }
+  // migrate เอกสารเก่าที่ยังไม่มี vatMode (มีแต่ vatRate ตัวเลข)
+  var oldRate = Number(doc.vatRate) || 0;
+  if (oldRate > 0) {
+    if (!sel.querySelector('option[value="' + oldRate + '"]')) {
+      var opt2 = document.createElement('option');
+      opt2.value = String(oldRate);
+      opt2.textContent = 'VAT ' + oldRate + '%';
+      sel.appendChild(opt2);
+    }
+    sel.value = String(oldRate);
+  } else {
+    sel.value = 'none';
+  }
+}
+
 function openDocModal(doc, prefillFromConvert) {
   refreshContactDatalist(); refreshProductDatalist();
   document.getElementById('docModalTitle').textContent = doc ? 'แก้ไขเอกสาร' : (prefillFromConvert ? 'สร้างเอกสารจากการแปลง' : 'สร้างเอกสารขาย');
@@ -1775,7 +1826,7 @@ function openDocModal(doc, prefillFromConvert) {
   renderDocItems();
 
   document.getElementById('docDiscountTotal').value = doc ? doc.discountTotal : 0;
-  document.getElementById('docVatRate').value = doc ? doc.vatRate : DB.settings.vatRate;
+  setDocVatRateSelect(doc);
   document.getElementById('docWhtRate').value = doc ? doc.whtRate : 0;
   document.getElementById('docNote').value = doc ? (doc.note||'') : '';
   document.getElementById('docStatus').value = doc ? doc.status : 'draft';
@@ -1810,7 +1861,8 @@ document.getElementById('btnDocCancel').addEventListener('click', function () { 
 
 function collectDocFromForm() {
   var discountTotal = Number(document.getElementById('docDiscountTotal').value) || 0;
-  var vatRate = Number(document.getElementById('docVatRate').value) || 0;
+  var vatMode = document.getElementById('docVatRate').value;
+  var vatRate = vatMode === 'none' ? 0 : Number(vatMode) || 0;
   var whtRate = Number(document.getElementById('docWhtRate').value) || 0;
   var id = document.getElementById('docId').value;
   return {
@@ -1823,6 +1875,7 @@ function collectDocFromForm() {
     reference: document.getElementById('docReference').value.trim(),
     items: JSON.parse(JSON.stringify(docItemsState)),
     discountTotal: discountTotal,
+    vatMode: vatMode,
     vatRate: vatRate,
     whtRate: whtRate,
     status: document.getElementById('docStatus').value,
@@ -1923,6 +1976,7 @@ var DOC_PRINT_TITLE = {
 
 function buildPrintHtml(doc, copyType) {
   var calc = AcctCore.calcDocument(doc);
+  var docVatMode = (doc.vatMode !== undefined && doc.vatMode !== null && doc.vatMode !== '') ? doc.vatMode : ((Number(doc.vatRate) || 0) > 0 ? '7' : 'none');
   var contact = DB.contacts.find(function (c) { return c.id === doc.contactId; }) || {};
   var comp = DB.settings.company;
   var title = DOC_PRINT_TITLE[doc.docType] || 'เอกสาร';
@@ -2000,7 +2054,7 @@ function buildPrintHtml(doc, copyType) {
     +   '<div class="doc-baht-text">(' + AcctCore.bahtText(calc.grandTotal) + ')</div>'
     +   '<div class="doc-totals"><table>'
     +     '<tr><td class="lbl">รวมเป็นเงิน</td><td class="text-right mono">' + fmt(calc.afterDiscount) + ' บาท</td></tr>'
-    +     '<tr><td class="lbl">ภาษีมูลค่าเพิ่ม ' + (doc.vatRate||0) + '%</td><td class="text-right mono">' + fmt(calc.vat) + ' บาท</td></tr>'
+    +     (docVatMode !== 'none' ? '<tr><td class="lbl">ภาษีมูลค่าเพิ่ม ' + (doc.vatRate||0) + '%</td><td class="text-right mono">' + fmt(calc.vat) + ' บาท</td></tr>' : '')
     +     '<tr class="grand"><td class="lbl">จำนวนเงินรวมทั้งสิ้น</td><td class="text-right mono">' + fmt(calc.grandTotal) + ' บาท</td></tr>'
     +     (calc.wht > 0 ? '<tr><td class="lbl">หักภาษี ณ ที่จ่าย ' + doc.whtRate + '%</td><td class="text-right mono">' + fmt(calc.wht) + ' บาท</td></tr>' : '')
     +     '<tr class="net"><td>ยอดชำระ</td><td class="text-right mono">' + fmt(calc.netReceive) + ' บาท</td></tr>'
