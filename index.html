@@ -9,6 +9,8 @@
   --primary:#1565c0; --primary-dark:#0d47a1; --primary-light:#e3f2fd;
   --accent:#00897b; --danger:#e53935; --warning:#fb8c00; --success:#43a047;
   --bg:#f4f6f9; --card:#ffffff; --border:#dde3ea; --text:#1f2937; --text-mute:#6b7280;
+  /* ---------- โทนสีเอกสารพิมพ์ (BLOOM) ---------- */
+  --doc-blue:#7B9FCB; --doc-blue-dark:#5A7FA8; --doc-brown:#A0522D; --doc-blue-bg:#EDF2F8;
 }
 *{box-sizing:border-box;}
 body{
@@ -165,30 +167,65 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
   #print-area{ display:block; position:absolute; top:0; left:0; width:100%; }
   @page{ size:A4; margin:12mm; }
 }
-.doc-sheet{ width:186mm; min-height:260mm; margin:0 auto; background:#fff; padding:6mm; font-size:12.5px; color:#000; }
-.doc-sheet h2.doc-title{ text-align:center; font-size:20px; margin:2px 0 2px; letter-spacing:1px; }
-.doc-sheet .copy-tag{ text-align:center; font-size:12px; margin-bottom:8px; color:#333; }
-.doc-head{ display:flex; justify-content:space-between; gap:10px; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:8px;}
-.doc-head .seller{ width:56%; }
-.doc-head .seller .company-name{ font-size:15px; font-weight:700; }
-.doc-head .meta{ width:40%; }
-.doc-head .meta table{ width:100%; }
-.doc-head .meta td{ border:none; padding:1px 2px; font-size:12px; }
-.doc-buyer{ border:1px solid #000; padding:6px 8px; margin-bottom:8px; font-size:12px; }
-.doc-sheet table.items{ width:100%; border-collapse:collapse; margin-bottom:6px; }
-.doc-sheet table.items th, .doc-sheet table.items td{ border:1px solid #000; padding:4px 5px; font-size:12px; }
-.doc-sheet table.items th{ background:#eee; text-align:center; }
-.doc-foot-row{ display:flex; justify-content:space-between; gap:10px; }
-.doc-baht-text{ width:56%; border:1px solid #000; padding:6px 8px; font-size:12px; align-self:flex-start; }
-.doc-totals{ width:42%; }
+.doc-sheet{
+  width:186mm; min-height:260mm; margin:0 auto; background:#fff; padding:10mm 9mm 8mm;
+  font-size:12px; color:#1a1a1a; position:relative; display:flex; flex-direction:column;
+  font-family: "Sarabun", Tahoma, "Segoe UI", sans-serif;
+}
+/* มุมสามเหลี่ยมสีฟ้าขวาบน + เลขหน้า */
+.doc-corner{ position:absolute; top:0; right:0; width:0; height:0; border-style:solid; border-width:0 46px 46px 0; border-color:transparent var(--doc-blue) transparent transparent; }
+.doc-corner .num{ position:absolute; top:4px; right:-42px; color:#fff; font-size:13px; font-weight:700; }
+
+/* ---------- หัวเอกสาร: โลโก้ซ้าย / ชื่อเอกสาร+ต้นฉบับ-สำเนาขวา ---------- */
+.doc-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.doc-top .logo-wrap{ max-width:230px; }
+.doc-top .logo-wrap svg, .doc-top .logo-wrap img{ max-height:58px; max-width:230px; }
+.doc-top .title-wrap{ text-align:right; }
+.doc-title{ color:var(--doc-blue); font-size:22px; font-weight:700; margin:0; letter-spacing:1px; }
+.doc-copy-tag{ color:var(--doc-blue); font-size:12px; margin-top:2px; }
+.doc-hr{ border:none; border-top:1px solid #ccc; margin:0 0 10px; }
+
+/* ---------- แถวข้อมูลผู้ขาย/เมตาเอกสาร ---------- */
+.doc-info-row{ display:flex; justify-content:space-between; gap:16px; margin-bottom:10px; font-size:12px; }
+.doc-info-row .seller{ width:56%; line-height:1.75; }
+.doc-info-row .seller .company-name{ font-weight:700; font-size:13.5px; margin-bottom:2px; }
+.doc-info-row .meta{ width:40%; }
+.doc-info-row .meta table{ width:100%; border-collapse:collapse; }
+.doc-info-row .meta td{ border:none; padding:2px 3px; font-size:12px; vertical-align:top; }
+.doc-info-row .meta td.label{ color:var(--doc-blue-dark); white-space:nowrap; width:32%; font-weight:600; }
+
+/* ---------- ลูกค้า ---------- */
+.doc-buyer{ margin-bottom:10px; font-size:12px; line-height:1.75; }
+.doc-buyer .buyer-title{ color:var(--doc-blue); font-weight:700; margin-bottom:2px; }
+
+/* ---------- ตารางรายการ ---------- */
+.doc-sheet table.items{ width:100%; border-collapse:collapse; margin-bottom:8px; }
+.doc-sheet table.items th{ background:var(--doc-blue-bg); color:var(--doc-blue-dark); font-weight:600; border-top:1px solid #ccc; border-bottom:1px solid #ccc; padding:6px 6px; font-size:12px; text-align:center; }
+.doc-sheet table.items td{ border-bottom:1px solid #e4e4e4; padding:5px 6px; font-size:12px; }
+
+/* ---------- อักษรไทย + ยอดสรุป ---------- */
+.doc-foot-row{ display:flex; justify-content:space-between; gap:16px; margin-bottom:8px; }
+.doc-baht-text{ width:56%; font-size:12px; align-self:flex-end; }
+.doc-totals{ width:40%; }
 .doc-totals table{ width:100%; border-collapse:collapse; }
-.doc-totals td{ border:1px solid #000; padding:4px 6px; font-size:12px; }
-.doc-totals tr.grand td{ font-weight:700; font-size:13.5px; background:#f2f2f2; }
-.doc-signatures{ display:flex; justify-content:space-around; margin-top:34px; text-align:center; font-size:12px; }
-.doc-signatures .sig-box{ width:42%; }
-.doc-signatures .sig-line{ border-bottom:1px solid #000; height:48px; display:flex; align-items:flex-end; justify-content:center; }
-.doc-signatures img{ max-height:44px; }
-.doc-note{ font-size:11px; color:#333; margin-top:6px; }
+.doc-totals td{ border:none; padding:3px 4px; font-size:12px; }
+.doc-totals td.lbl{ color:var(--doc-blue-dark); }
+.doc-totals tr.grand td{ font-weight:700; }
+.doc-totals tr.net td{ font-weight:700; font-size:13.5px; color:var(--doc-brown); border-top:1px solid #999; padding-top:6px; }
+.doc-note{ font-size:11px; color:#333; margin-bottom:8px; }
+
+/* ---------- ส่วนล่างสุด (ชิดล่างเสมอ) ---------- */
+.doc-bottom-block{ margin-top:auto; padding-top:10px; }
+.doc-payment-line{ font-size:11.5px; margin-bottom:8px; display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.doc-checkbox{ display:inline-flex; align-items:center; gap:3px; margin-left:6px; }
+.doc-checkbox .box{ width:12px; height:12px; border:1px solid #333; display:inline-flex; align-items:center; justify-content:center; font-size:10px; line-height:1; }
+.doc-bank-line{ font-size:11.5px; margin-bottom:14px; }
+.doc-bank-line .fill{ border-bottom:1px solid #333; display:inline-block; min-width:80px; padding:0 4px; text-align:center; }
+.doc-innam-row{ display:flex; justify-content:space-between; font-size:12px; margin-bottom:30px; gap:10px; }
+.doc-signatures{ display:flex; justify-content:space-between; text-align:center; font-size:11.5px; gap:6px; }
+.doc-signatures .sig-box{ width:24%; }
+.doc-signatures .sig-line{ border-bottom:1px solid #333; height:38px; display:flex; align-items:flex-end; justify-content:center; }
+.doc-signatures img{ max-height:34px; }
 
 .badge-print{ display:inline-block; border:1px solid #000; padding:1px 6px; font-size:10px; border-radius:3px; margin-right:4px;}
 </style>
@@ -345,13 +382,21 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
             <div class="form-row" style="grid-column:1/-1;"><label>ที่อยู่</label><textarea id="stAddress"></textarea></div>
             <div class="form-row"><label>โทรศัพท์</label><input type="text" id="stPhone"></div>
             <div class="form-row"><label>สาขา</label><input type="text" id="stBranch"></div>
+            <div class="form-row"><label>ชื่อผู้ขาย/ผู้ติดต่อ (แสดงบนเอกสาร)</label><input type="text" id="stSellerName"></div>
           </div>
           <div class="grid cols-2">
-            <div class="form-row"><label>โลโก้บริษัท (รูปภาพ)</label><input type="file" id="stLogoFile" accept="image/*">
+            <div class="form-row"><label>โลโก้บริษัท (รูปภาพ) — ถ้าไม่อัปโหลด จะใช้โลโก้ BLOOM เริ่มต้น</label><input type="file" id="stLogoFile" accept="image/*">
               <div id="stLogoPreview" style="margin-top:6px;"></div></div>
             <div class="form-row"><label>ลายเซ็นอิเล็กทรอนิกส์ (รูปภาพ)</label><input type="file" id="stSigFile" accept="image/*">
               <div id="stSigPreview" style="margin-top:6px;"></div></div>
           </div>
+          <fieldset>
+            <legend>ข้อมูลบัญชีธนาคาร (ใช้เติมอัตโนมัติในเอกสารเมื่อช่องทางชำระ = โอนเงิน)</legend>
+            <div class="grid cols-2">
+              <div class="form-row"><label>ธนาคาร/ประเภทบัญชี</label><input type="text" id="stBankName"></div>
+              <div class="form-row"><label>เลขที่บัญชี</label><input type="text" id="stBankAccount"></div>
+            </div>
+          </fieldset>
           <button class="primary" id="btnSaveCompany">บันทึกข้อมูลบริษัท</button>
         </div>
 
@@ -372,7 +417,7 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
               <div class="form-row"><label>ใบลดหนี้</label><input type="text" id="pfxCreditNote"></div>
               <div class="form-row"><label>ค่าใช้จ่าย</label><input type="text" id="pfxExpense"></div>
             </div>
-            <div class="hint">รูปแบบเลขที่: {prefix}{ปีเดือน}-{running 4 หลัก} เช่น TX202607-0001 (แก้เลขที่แต่ละใบเองได้ตอนออกเอกสาร)</div>
+            <div class="hint">รูปแบบเลขที่: {prefix}{ปีเดือนวัน}{running 4 หลัก} เช่น RE202512020001 (รันแยกต่อวันต่อประเภทเอกสาร วันใหม่เริ่ม 0001 ใหม่ / แก้เลขที่แต่ละใบเองได้ตอนออกเอกสาร)</div>
           </fieldset>
           <button class="primary" id="btnSaveDocSettings">บันทึกตั้งค่าเอกสาร</button>
         </div>
@@ -439,8 +484,8 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
       <div class="form-row"><label>ประเภทเอกสาร</label>
         <select id="docType">
           <option value="quotation">ใบเสนอราคา (QT)</option>
-          <option value="invoice">ใบแจ้งหนี้ (IV)</option>
-          <option value="taxInvoice">ใบกำกับภาษี/ใบเสร็จรับเงิน (TX)</option>
+          <option value="invoice">ใบแจ้งหนี้ (INV)</option>
+          <option value="taxInvoice">ใบกำกับภาษี/ใบเสร็จรับเงิน (RE)</option>
           <option value="creditNote">ใบลดหนี้ (CN)</option>
         </select>
       </div>
@@ -670,6 +715,25 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
   </div>
 </div>
 
+<!-- ============ PRINT COPY SELECT MODAL ============ -->
+<div class="modal-overlay" id="modalPrintCopy">
+  <div class="modal" style="max-width:380px;">
+    <h3>เลือกประเภทก่อนพิมพ์</h3>
+    <div class="form-row">
+      <label style="display:flex; align-items:center; gap:6px; font-size:14px; color:var(--text); margin-bottom:8px;">
+        <input type="radio" name="printCopyType" value="original" checked style="width:auto;"> ต้นฉบับ
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; font-size:14px; color:var(--text);">
+        <input type="radio" name="printCopyType" value="copy" style="width:auto;"> สำเนา
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" id="btnPrintCopyCancel">ยกเลิก</button>
+      <button class="primary" id="btnPrintCopyOk">พิมพ์เอกสาร</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- ============ PRINT AREA ============ -->
@@ -678,6 +742,23 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
 </div>
 
 <script>
+/* =====================================================================
+   BLOOM_LOGO_SVG — โลโก้เริ่มต้นของเอกสาร (ใช้เมื่อผู้ใช้ยังไม่อัปโหลดโลโก้เอง)
+   ดอกไม้ 4 กลีบทรงหยดน้ำปลายแหลมเข้ากลาง หมุนวางแนวทแยง 45/135/225/315 องศา
+   ===================================================================== */
+var BLOOM_LOGO_SVG = '' +
+'<svg viewBox="0 0 340 100" xmlns="http://www.w3.org/2000/svg">' +
+  '<g stroke="#7B9FCB" stroke-width="3.2" fill="none" stroke-linejoin="round" stroke-linecap="round">' +
+    '<path d="M50,50 C32,42 27,18 50,9 C73,18 68,42 50,50 Z" transform="rotate(45 50 50)"/>' +
+    '<path d="M50,50 C32,42 27,18 50,9 C73,18 68,42 50,50 Z" transform="rotate(135 50 50)"/>' +
+    '<path d="M50,50 C32,42 27,18 50,9 C73,18 68,42 50,50 Z" transform="rotate(225 50 50)"/>' +
+    '<path d="M50,50 C32,42 27,18 50,9 C73,18 68,42 50,50 Z" transform="rotate(315 50 50)"/>' +
+  '</g>' +
+  '<circle cx="50" cy="50" r="4.5" fill="#7B9FCB"/>' +
+  '<text x="112" y="53" font-family="Georgia, \'Times New Roman\', serif" font-weight="700" font-size="32" fill="#1a1a1a" letter-spacing="4">BLOOM</text>' +
+  '<text x="113" y="75" font-family="Georgia, \'Times New Roman\', serif" font-weight="400" font-size="12.5" fill="#A0522D" letter-spacing="6">ACCOUNTING</text>' +
+'</svg>';
+
 /* =====================================================================
    AcctCore — โมดูลคำนวณหลัก (ปัดเศษ, คำนวณเอกสาร, แปลงตัวเลขเป็นตัวอักษรไทย, รันเลขเอกสาร)
    ทดสอบแยกต่างหากด้วย Node.js ผ่าน test_core.js (เคส 8 ข้อ + เสริม ครบ 28 assertion ผ่านทั้งหมด)
@@ -789,8 +870,9 @@ var AcctCore = (function () {
     var date = opts.date instanceof Date ? opts.date : new Date(opts.date || Date.now());
     var yyyy = String(date.getFullYear());
     var mm = String(date.getMonth() + 1).padStart(2, '0');
+    var dd = String(date.getDate()).padStart(2, '0');
     var existingNumbers = opts.existingNumbers || [];
-    var base = pattern.replace('{prefix}', prefix).replace('{YYYY}', yyyy).replace('{MM}', mm);
+    var base = pattern.replace('{prefix}', prefix).replace('{YYYY}', yyyy).replace('{MM}', mm).replace('{DD}', dd);
     var beforeRun = base.split('{run4}')[0];
     var afterRun = base.split('{run4}')[1] || '';
     var maxRun = 0;
@@ -1072,7 +1154,7 @@ if (typeof module !== 'undefined' && module.exports) {
 var STORAGE_KEY = 'siamoil_acct_v1';
 
 var DOC_TYPE_LABEL = { quotation:'ใบเสนอราคา', invoice:'ใบแจ้งหนี้', taxInvoice:'ใบกำกับภาษี/ใบเสร็จรับเงิน', creditNote:'ใบลดหนี้' };
-var DOC_TYPE_SHORT = { quotation:'QT', invoice:'IV', taxInvoice:'TX', creditNote:'CN' };
+var DOC_TYPE_SHORT = { quotation:'QT', invoice:'INV', taxInvoice:'RE', creditNote:'CN' };
 var STATUS_LABEL = { draft:'ร่าง', awaiting:'รอเก็บเงิน', paid:'เก็บเงินแล้ว', void:'ยกเลิก' };
 var PAYMENT_LABEL = { cash:'เงินสด', transfer:'โอนเงิน', cheque:'เช็ค', credit:'บัตรเครดิต', '':'-' };
 
@@ -1086,13 +1168,16 @@ function defaultData() {
         phone: '0941894212',
         branch: 'สำนักงานใหญ่',
         logo: '',
-        signature: ''
+        signature: '',
+        sellerName: 'สุพิชญา ธรรมศิริ',
+        bankName: 'ไทยพาณิชย์ ออมทรัพย์',
+        bankAccount: '5655263304'
       },
       vatRate: 7,
       priceIncludesVat: false,
       docNumberFormat: {
-        prefixByType: { quotation:'QT', invoice:'IV', taxInvoice:'TX', receipt:'RE', creditNote:'CN', expense:'EX' },
-        pattern: '{prefix}{YYYY}{MM}-{run4}'
+        prefixByType: { quotation:'QT', invoice:'INV', taxInvoice:'RE', receipt:'RE', creditNote:'CN', expense:'EX' },
+        pattern: '{prefix}{YYYY}{MM}{DD}{run4}'
       }
     },
     contacts: [],
@@ -1103,6 +1188,22 @@ function defaultData() {
 }
 
 var DB = null;
+
+// ---- migration: เลขเอกสารรูปแบบเก่า {prefix}{YYYY}{MM}-{run4} -> รูปแบบใหม่รายวัน {prefix}{YYYY}{MM}{DD}{run4} ----
+// ทำเฉพาะกรณี pattern ที่เก็บไว้ยังเป็นค่า default เก่าเป๊ะๆ เท่านั้น ถ้าผู้ใช้เคยแก้ pattern เองเป็นอย่างอื่น จะไม่ถูกแตะ
+var OLD_DEFAULT_PATTERN = '{prefix}{YYYY}{MM}-{run4}';
+var NEW_DEFAULT_PATTERN = '{prefix}{YYYY}{MM}{DD}{run4}';
+function migrateDocNumberFormatIfNeeded() {
+  if (!DB || !DB.settings || !DB.settings.docNumberFormat) return false;
+  var fmtObj = DB.settings.docNumberFormat;
+  if (fmtObj.pattern !== OLD_DEFAULT_PATTERN) return false;
+  fmtObj.pattern = NEW_DEFAULT_PATTERN;
+  var pfx = fmtObj.prefixByType || {};
+  if (pfx.invoice === 'IV') pfx.invoice = 'INV';
+  if (pfx.taxInvoice === 'TX') pfx.taxInvoice = 'RE';
+  fmtObj.prefixByType = pfx;
+  return true;
+}
 
 function loadDB() {
   try {
@@ -1120,6 +1221,7 @@ function loadDB() {
     DB.products = parsed.products || [];
     DB.documents = parsed.documents || [];
     DB.expenses = parsed.expenses || [];
+    if (migrateDocNumberFormatIfNeeded()) saveDB(); // จะ auto-push ขึ้นคลาวด์เองผ่าน glue เดิม (ถ้าเปิดซิงก์อัตโนมัติ)
   } catch (e) {
     console.error('โหลดข้อมูลผิดพลาด', e);
     DB = defaultData();
@@ -1204,6 +1306,9 @@ function fillSettingsForm() {
   document.getElementById('stAddress').value = c.address || '';
   document.getElementById('stPhone').value = c.phone || '';
   document.getElementById('stBranch').value = c.branch || '';
+  document.getElementById('stSellerName').value = c.sellerName || '';
+  document.getElementById('stBankName').value = c.bankName || '';
+  document.getElementById('stBankAccount').value = c.bankAccount || '';
   document.getElementById('stVatRate').value = DB.settings.vatRate;
   document.getElementById('stPriceMode').value = String(!!DB.settings.priceIncludesVat);
 
@@ -1226,6 +1331,9 @@ document.getElementById('btnSaveCompany').addEventListener('click', function () 
   DB.settings.company.address = document.getElementById('stAddress').value.trim();
   DB.settings.company.phone = document.getElementById('stPhone').value.trim();
   DB.settings.company.branch = document.getElementById('stBranch').value.trim();
+  DB.settings.company.sellerName = document.getElementById('stSellerName').value.trim();
+  DB.settings.company.bankName = document.getElementById('stBankName').value.trim();
+  DB.settings.company.bankAccount = document.getElementById('stBankAccount').value.trim();
   saveDB();
   toast('บันทึกข้อมูลบริษัทแล้ว', 'success');
 });
@@ -1775,16 +1883,35 @@ window.convertDoc = function (id) {
 };
 
 /* ---------- พิมพ์เอกสาร (เฟส 4) ---------- */
+var pendingPrintDoc = null;
+function openPrintCopyModal(doc) {
+  pendingPrintDoc = doc;
+  document.querySelectorAll('input[name="printCopyType"]').forEach(function (r) { r.checked = (r.value === 'original'); });
+  openModal('modalPrintCopy');
+}
+document.getElementById('btnPrintCopyCancel').addEventListener('click', function () {
+  closeModal('modalPrintCopy');
+  pendingPrintDoc = null;
+});
+document.getElementById('btnPrintCopyOk').addEventListener('click', function () {
+  var sel = document.querySelector('input[name="printCopyType"]:checked');
+  var copyType = sel ? sel.value : 'original';
+  closeModal('modalPrintCopy');
+  if (pendingPrintDoc) {
+    document.getElementById('printSheet').innerHTML = buildPrintHtml(pendingPrintDoc, copyType);
+    window.print();
+  }
+  pendingPrintDoc = null;
+});
+
 window.printDoc = function (id) {
   var doc = DB.documents.find(function (d) { return d.id === id; });
   if (!doc) return;
-  document.getElementById('printSheet').innerHTML = buildPrintHtml(doc);
-  window.print();
+  openPrintCopyModal(doc);
 };
 document.getElementById('btnDocPreview').addEventListener('click', function () {
   var doc = collectDocFromForm();
-  document.getElementById('printSheet').innerHTML = buildPrintHtml(doc);
-  window.print();
+  openPrintCopyModal(doc);
 });
 
 var DOC_PRINT_TITLE = {
@@ -1794,11 +1921,12 @@ var DOC_PRINT_TITLE = {
   creditNote: 'ใบลดหนี้'
 };
 
-function buildPrintHtml(doc) {
+function buildPrintHtml(doc, copyType) {
   var calc = AcctCore.calcDocument(doc);
   var contact = DB.contacts.find(function (c) { return c.id === doc.contactId; }) || {};
   var comp = DB.settings.company;
   var title = DOC_PRINT_TITLE[doc.docType] || 'เอกสาร';
+  var copyLabel = copyType === 'copy' ? 'สำเนา' : 'ต้นฉบับ';
 
   var itemsRows = doc.items.map(function (it, i) {
     var amount = AcctCore.round2((Number(it.qty)||0) * (Number(it.price)||0) - (Number(it.discount)||0));
@@ -1818,50 +1946,79 @@ function buildPrintHtml(doc) {
     itemsRows += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
   }
 
-  var isTaxInvoice = doc.docType === 'taxInvoice';
+  var logoHtml = comp.logo ? '<img src="' + comp.logo + '">' : BLOOM_LOGO_SVG;
   var sigImg = comp.signature ? '<img src="' + comp.signature + '">' : '';
 
+  // อ้างอิง: ใช้ฟิลด์ reference ถ้ามี ไม่งั้นดึงเลขที่เอกสารต้นทางจาก linkedFrom
+  var linkedDoc = doc.linkedFrom ? DB.documents.find(function (d) { return d.id === doc.linkedFrom; }) : null;
+  var referenceDisplay = doc.reference || (linkedDoc ? linkedDoc.number : '');
+
+  // ช่องทางชำระ: ติ๊กตามที่บันทึกไว้ ถ้ายังไม่ระบุให้ว่างทั้งหมด
+  var pm = doc.paymentMethod || '';
+  function payCheckbox(method, label) {
+    return '<span class="doc-checkbox"><span class="box">' + (pm === method ? '&#10003;' : '') + '</span>' + label + '</span>';
+  }
+  var bankNameFill = pm === 'transfer' ? escapeHtml(comp.bankName||'') : '';
+  var bankAccountFill = pm === 'transfer' ? escapeHtml(comp.bankAccount||'') : '';
+  var payDateFill = pm ? formatThaiDate(doc.paidDate || doc.issueDate) : '';
+  var payAmountFill = pm ? fmt(calc.netReceive) : '';
+
   var html = ''
-    + '<div class="badge-print">' + (isTaxInvoice ? 'ต้นฉบับ' : 'สำเนา') + '</div>'
-    + '<h2 class="doc-title">' + title + (isTaxInvoice ? ' (ต้นฉบับ)' : '') + '</h2>'
-    + (doc.status === 'void' ? '<div class="copy-tag" style="color:red;font-weight:700;">** เอกสารนี้ถูกยกเลิก (VOID) **</div>' : '')
-    + '<div class="doc-head">'
+    + '<div class="doc-corner"><span class="num">1</span></div>'
+    + '<div class="doc-top">'
+    +   '<div class="logo-wrap">' + logoHtml + '</div>'
+    +   '<div class="title-wrap"><h2 class="doc-title">' + title + '</h2><div class="doc-copy-tag">' + copyLabel + '</div></div>'
+    + '</div>'
+    + '<hr class="doc-hr">'
+    + (doc.status === 'void' ? '<div style="color:red;font-weight:700;text-align:center;margin-bottom:8px;">** เอกสารนี้ถูกยกเลิก (VOID) **</div>' : '')
+    + '<div class="doc-info-row">'
     +   '<div class="seller">'
-    +     '<div class="company-name">' + escapeHtml(comp.name) + '</div>'
+    +     '<div class="company-name">' + escapeHtml(comp.name) + (comp.branch ? ' (' + escapeHtml(comp.branch) + ')' : '') + '</div>'
     +     '<div>' + escapeHtml(comp.address) + '</div>'
-    +     '<div>โทร ' + escapeHtml(comp.phone) + '</div>'
-    +     '<div>เลขประจำตัวผู้เสียภาษีอากร: ' + escapeHtml(comp.taxId) + ' (' + escapeHtml(comp.branch||'สำนักงานใหญ่') + ')</div>'
+    +     '<div>เลขประจำตัวผู้เสียภาษี ' + escapeHtml(comp.taxId) + '</div>'
+    +     '<div>โทร. ' + escapeHtml(comp.phone) + '</div>'
     +   '</div>'
     +   '<div class="meta"><table>'
-    +     '<tr><td>เลขที่เอกสาร</td><td class="mono">: ' + escapeHtml(doc.number) + '</td></tr>'
-    +     '<tr><td>วันที่ออกเอกสาร</td><td>: ' + formatThaiDate(doc.issueDate) + '</td></tr>'
-    +     (doc.dueDate ? '<tr><td>วันครบกำหนด</td><td>: ' + formatThaiDate(doc.dueDate) + '</td></tr>' : '')
-    +     (doc.reference ? '<tr><td>อ้างอิง</td><td>: ' + escapeHtml(doc.reference) + '</td></tr>' : '')
+    +     '<tr><td class="label">เลขที่</td><td>' + escapeHtml(doc.number) + '</td></tr>'
+    +     '<tr><td class="label">วันที่</td><td>' + formatThaiDate(doc.issueDate) + '</td></tr>'
+    +     (doc.dueDate ? '<tr><td class="label">ครบกำหนด</td><td>' + formatThaiDate(doc.dueDate) + '</td></tr>' : '')
+    +     '<tr><td class="label">ผู้ขาย</td><td>' + escapeHtml(comp.sellerName||'') + '</td></tr>'
+    +     (referenceDisplay ? '<tr><td class="label">อ้างอิง</td><td>' + escapeHtml(referenceDisplay) + '</td></tr>' : '')
     +   '</table></div>'
     + '</div>'
     + '<div class="doc-buyer">'
-    +   '<b>ลูกค้า:</b> ' + escapeHtml(contact.name||'-') + '<br>'
+    +   '<div class="buyer-title">ลูกค้า</div>'
+    +   escapeHtml(contact.name||'-') + (contact.branch ? ' (' + escapeHtml(contact.branch) + ')' : '') + '<br>'
     +   (contact.address ? escapeHtml(contact.address) + '<br>' : '')
-    +   'เลขประจำตัวผู้เสียภาษีอากร: ' + escapeHtml(contact.taxId||'-') + ' (' + escapeHtml(contact.branch||'สำนักงานใหญ่') + ')'
+    +   'เลขประจำตัวผู้เสียภาษี ' + escapeHtml(contact.taxId||'-')
     + '</div>'
     + '<table class="items"><thead><tr>'
-    +   '<th style="width:5%;">ลำดับ</th><th>รายการ</th><th style="width:8%;">จำนวน</th><th style="width:8%;">หน่วย</th>'
-    +   '<th style="width:13%;">ราคา/หน่วย</th><th style="width:12%;">ส่วนลด</th><th style="width:14%;">จำนวนเงิน</th>'
+    +   '<th style="width:5%;">#</th><th>รายละเอียด</th><th style="width:9%;">จำนวน</th><th style="width:8%;">หน่วย</th>'
+    +   '<th style="width:13%;">ราคาต่อหน่วย</th><th style="width:11%;">ส่วนลด</th><th style="width:14%;">ยอดรวม</th>'
     + '</tr></thead><tbody>' + itemsRows + '</tbody></table>'
     + '<div class="doc-foot-row">'
-    +   '<div class="doc-baht-text"><b>จำนวนเงินตัวอักษร:</b><br>(' + AcctCore.bahtText(calc.grandTotal) + ')</div>'
+    +   '<div class="doc-baht-text">(' + AcctCore.bahtText(calc.grandTotal) + ')</div>'
     +   '<div class="doc-totals"><table>'
-    +     '<tr><td>มูลค่าก่อนภาษี</td><td class="text-right mono">' + fmt(calc.afterDiscount) + '</td></tr>'
-    +     '<tr><td>ภาษีมูลค่าเพิ่ม ' + (doc.vatRate||0) + '%</td><td class="text-right mono">' + fmt(calc.vat) + '</td></tr>'
-    +     '<tr class="grand"><td>จำนวนเงินรวมทั้งสิ้น</td><td class="text-right mono">' + fmt(calc.grandTotal) + '</td></tr>'
-    +     (calc.wht > 0 ? '<tr><td>หัก ณ ที่จ่าย ' + doc.whtRate + '%</td><td class="text-right mono">' + fmt(calc.wht) + '</td></tr>'
-                        + '<tr class="grand"><td>ยอดรับสุทธิ</td><td class="text-right mono">' + fmt(calc.netReceive) + '</td></tr>' : '')
+    +     '<tr><td class="lbl">รวมเป็นเงิน</td><td class="text-right mono">' + fmt(calc.afterDiscount) + ' บาท</td></tr>'
+    +     '<tr><td class="lbl">ภาษีมูลค่าเพิ่ม ' + (doc.vatRate||0) + '%</td><td class="text-right mono">' + fmt(calc.vat) + ' บาท</td></tr>'
+    +     '<tr class="grand"><td class="lbl">จำนวนเงินรวมทั้งสิ้น</td><td class="text-right mono">' + fmt(calc.grandTotal) + ' บาท</td></tr>'
+    +     (calc.wht > 0 ? '<tr><td class="lbl">หักภาษี ณ ที่จ่าย ' + doc.whtRate + '%</td><td class="text-right mono">' + fmt(calc.wht) + ' บาท</td></tr>' : '')
+    +     '<tr class="net"><td>ยอดชำระ</td><td class="text-right mono">' + fmt(calc.netReceive) + ' บาท</td></tr>'
     +   '</table></div>'
     + '</div>'
     + (doc.note ? '<div class="doc-note"><b>หมายเหตุ:</b> ' + escapeHtml(doc.note) + '</div>' : '')
-    + '<div class="doc-signatures">'
-    +   '<div class="sig-box"><div class="sig-line"></div>ผู้รับสินค้า / ผู้อนุมัติ<br>วันที่ ............................</div>'
-    +   '<div class="sig-box"><div class="sig-line">' + sigImg + '</div>ผู้รับเงิน / ผู้มีอำนาจลงนาม<br>วันที่ ' + formatThaiDate(doc.issueDate) + '</div>'
+    + '<div class="doc-bottom-block">'
+    +   '<div class="doc-payment-line">การชำระเงินจะสมบูรณ์เมื่อบริษัทได้รับเงินเรียบร้อยแล้ว'
+    +     payCheckbox('cash','เงินสด') + payCheckbox('cheque','เช็ค') + payCheckbox('transfer','โอนเงิน') + payCheckbox('credit','บัตรเครดิต')
+    +   '</div>'
+    +   '<div class="doc-bank-line">ธนาคาร <span class="fill">' + bankNameFill + '</span> เลขที่ <span class="fill">' + bankAccountFill + '</span> วันที่ <span class="fill">' + payDateFill + '</span> จำนวนเงิน <span class="fill">' + payAmountFill + '</span></div>'
+    +   '<div class="doc-innam-row"><div>ในนาม ' + escapeHtml(contact.name||'-') + '</div><div>ในนาม ' + escapeHtml(comp.name) + '</div></div>'
+    +   '<div class="doc-signatures">'
+    +     '<div class="sig-box"><div class="sig-line"></div>ผู้จ่ายเงิน</div>'
+    +     '<div class="sig-box"><div class="sig-line"></div>วันที่</div>'
+    +     '<div class="sig-box"><div class="sig-line">' + sigImg + '</div>ผู้รับเงิน</div>'
+    +     '<div class="sig-box"><div class="sig-line"></div>วันที่</div>'
+    +   '</div>'
     + '</div>';
   return html;
 }
