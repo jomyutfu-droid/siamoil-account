@@ -509,8 +509,8 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
       <div class="table-wrap">
       <table class="line-items-table" id="docItemsTable">
         <thead><tr>
-          <th class="text-l" style="width:26%;">สินค้า/บริการ</th><th style="width:9%;">จำนวน</th><th style="width:9%;">หน่วย</th>
-          <th style="width:14%;">ราคา/หน่วย</th><th style="width:12%;">ส่วนลด</th><th style="width:14%;">จำนวนเงิน</th><th style="width:6%;"></th>
+          <th class="text-l" style="width:38%;">สินค้า/บริการ</th><th style="width:9%;">จำนวน</th><th style="width:9%;">หน่วย</th>
+          <th style="width:14%;">ราคา/หน่วย</th><th style="width:14%;">จำนวนเงิน</th><th style="width:6%;"></th>
         </tr></thead>
         <tbody id="docItemsBody"></tbody>
       </table>
@@ -1675,7 +1675,6 @@ function renderDocItems() {
       '<td><input type="number" step="0.01" value="' + it.qty + '" oninput="updateDocItem(' + i + ',\'qty\',this.value)"></td>' +
       '<td><input type="text" value="' + escapeHtml(it.unit||'') + '" oninput="updateDocItem(' + i + ',\'unit\',this.value)"></td>' +
       '<td><input type="number" step="0.01" value="' + it.price + '" oninput="updateDocItem(' + i + ',\'price\',this.value)"></td>' +
-      '<td><input type="number" step="0.01" value="' + it.discount + '" oninput="updateDocItem(' + i + ',\'discount\',this.value)"></td>' +
       '<td class="mono text-right">' + fmt(amount) + '</td>' +
       '<td><button class="danger sm" type="button" onclick="removeDocItem(' + i + ')">×</button></td>' +
       '</tr>';
@@ -1703,7 +1702,7 @@ window.updateDocItem = function (i, field, value) {
   var row = document.getElementById('docItemsBody').children[i];
   if (row) {
     var amount = AcctCore.round2((Number(docItemsState[i].qty)||0) * (Number(docItemsState[i].price)||0) - (Number(docItemsState[i].discount)||0));
-    row.children[5].textContent = fmt(amount);
+    row.children[4].textContent = fmt(amount);
   }
 };
 window.removeDocItem = function (i) {
@@ -1990,14 +1989,13 @@ function buildPrintHtml(doc, copyType) {
       '<td class="text-center">' + fmt(it.qty) + '</td>' +
       '<td class="text-center">' + escapeHtml(it.unit||'') + '</td>' +
       '<td class="text-right mono">' + fmt(it.price) + '</td>' +
-      '<td class="text-right mono">' + fmt(it.discount||0) + '</td>' +
       '<td class="text-right mono">' + fmt(amount) + '</td>' +
       '</tr>';
   }).join('');
   // เติมแถวว่างให้ครบอย่างน้อย 4 แถว เพื่อความสวยงาม
   var minRows = 4;
   for (var i = doc.items.length; i < minRows; i++) {
-    itemsRows += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+    itemsRows += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>';
   }
 
   var logoHtml = comp.logo ? '<img src="' + comp.logo + '">' : BLOOM_LOGO_SVG;
@@ -2048,7 +2046,7 @@ function buildPrintHtml(doc, copyType) {
     + '</div>'
     + '<table class="items"><thead><tr>'
     +   '<th style="width:5%;">#</th><th>รายละเอียด</th><th style="width:9%;">จำนวน</th><th style="width:8%;">หน่วย</th>'
-    +   '<th style="width:13%;">ราคาต่อหน่วย</th><th style="width:11%;">ส่วนลด</th><th style="width:14%;">ยอดรวม</th>'
+    +   '<th style="width:13%;">ราคาต่อหน่วย</th><th style="width:25%;">ยอดรวม</th>'
     + '</tr></thead><tbody>' + itemsRows + '</tbody></table>'
     + '<div class="doc-foot-row">'
     +   '<div class="doc-baht-text">(' + AcctCore.bahtText(calc.grandTotal) + ')</div>'
